@@ -1,0 +1,29 @@
+{
+  "name": "edus",
+  "private": true,
+  "scripts": {
+    "start": "meteor run"
+  },
+  "dependencies": {
+    "apollo-client": "^0.5.2",
+    "async": "^2.1.5",
+    "babel-runtime": "^6.18.0",
+    "bcrypt": "^0.8.7",
+    "body-parser": "^1.17.0",
+    "cors": "^2.8.1",
+    "express": "^4.15.0",
+    "gql-merge": "0.0.4",
+    "graphql": "^0.7.2",
+    "graphql-server-express": "^0.4.4",
+    "graphql-subscriptions": "^0.2.1",
+    "graphql-tools": "^0.8.0",
+    "http": "0.0.0",
+    "http-proxy-middleware": "^0.17.3",
+    "lodash": "^4.17.4",
+    "meteor-node-stubs": "^0.2.5",
+    "moment": "^2.17.1",
+    "ng-file-upload": "^12.2.13",
+    "subscriptions-transport-ws": "^0.5.3",
+    "websocket": "^1.0.24"
+  }
+}
