@@ -1,7 +1,7 @@
 const resolveFunctions = {
   Query: {
-    getAcc: (root) => {
-      return AccountingObjects.find({}).fetch();
+    getBackgroundList: (root) => {
+      return BackgroundLists.find({}).fetch();
     }
   },
   Mutation: {

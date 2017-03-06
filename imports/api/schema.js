@@ -3,17 +3,22 @@ import { makeExecutableSchema } from 'graphql-tools';
 import resolvers from './resolvers';
 
 const schema = [`
-  type Acc {
+  type Background {
     _id: String
+    value: String
   }
+  type Class {
+	_id: String
+}
   type Query {
-    getAcc : [Acc]
+    getBackgroundList: [Background]
+    getClassInfo(classId: String, userId: String, role: String): Class
   }
   type Mutation {
     insertAcc: String
   }
   type Subscription {
-    getsub : Acc
+    getsub : String
   }
 
   schema {
