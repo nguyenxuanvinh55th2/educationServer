@@ -52,6 +52,9 @@ const resolveFunctions = {
       return usersList;
       //duyệt qua các user trong danh sách
     },
+    getBackgroundList: (root) => {
+      return BackgroundLists.find({}).fetch();
+    }
   },
 
   Mutation: {

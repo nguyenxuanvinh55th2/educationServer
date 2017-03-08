@@ -1,7 +1,5 @@
-import {Mongo} from 'meteor/mongo';
-
-Activities = new Mongo.Collection('activities');
-Activities.allow({
+ChatDatas = new Mongo.Collection('chatDatas');
+ChatDatas.allow({
   insert: function () {
       return true;
   },

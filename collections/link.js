@@ -1,7 +1,5 @@
-import {Mongo} from 'meteor/mongo';
-
-Activities = new Mongo.Collection('activities');
-Activities.allow({
+Links = new Mongo.Collection('links');
+Links.allow({
   insert: function () {
       return true;
   },

@@ -1,7 +1,5 @@
-import {Mongo} from 'meteor/mongo';
-
-Activities = new Mongo.Collection('activities');
-Activities.allow({
+TopicFiles = new Mongo.Collection('topicFiles');
+TopicFiles.allow({
   insert: function () {
       return true;
   },

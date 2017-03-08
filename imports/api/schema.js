@@ -3,9 +3,11 @@ import { makeExecutableSchema } from 'graphql-tools';
 import resolvers from './resolvers';
 
 const schema = [`
-  type Acc {
+  type Background {
     _id: String
+    value: String
   }
+<<<<<<< HEAD
 
   type Content {
   	index: Int,
@@ -29,20 +31,23 @@ const schema = [`
   type UserChat {
   	_id: String,
   	user: User,
-  	contentId: String
+  	contentId: String,
   	content: [Content]
   }
 
   type Query {
     getAcc : [Acc],
     userChat(userId: String): [UserChat],
+    getBackgroundList: [Background],
+    getClassInfo(classId: String, userId: String, role: String): Class
   }
 
   type Mutation {
     insertAcc: String
   }
+  
   type Subscription {
-    getsub : Acc
+    getsub : String
   }
 
   schema {

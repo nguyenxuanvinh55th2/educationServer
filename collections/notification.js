@@ -1,7 +1,5 @@
-import {Mongo} from 'meteor/mongo';
-
-Activities = new Mongo.Collection('activities');
-Activities.allow({
+Notifications = new Mongo.Collection('notifications');
+Notifications.allow({
   insert: function () {
       return true;
   },
