@@ -34,7 +34,6 @@ Meteor.startup(function () {
         Accounts.setPassword('0', '12345678');
     }
   })
- console.log(Meteor.users.find({}).fetch());
 
 const graphQLServer = express().use('*', cors());
 
