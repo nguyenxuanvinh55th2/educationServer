@@ -49,3 +49,13 @@ new SubscriptionServer(
  server: websocketServer
 }
 );
+
+Meteor.methods({
+  loginFbGgUser: (user) => {
+    console.log(user);
+    let checkId = Meteor.users.find({$or: [{googleId: user.googleId}, {id: user.id}]}).count();
+    if(checkId === 0)
+      Meteor.users.insert(user);
+    return Meteor.users.findOne({$or: [{googleId: user.googleId}, {id: user.id}]})
+  }
+});

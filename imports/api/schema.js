@@ -6,9 +6,38 @@ const schema = [`
   type Acc {
     _id: String
   }
-  type Query {
-    getAcc : [Acc]
+
+  type Content {
+  	index: Int,
+  	userId: String,
+  	user: User,
+  	message: String,
+  	read: Boolean,
+  	date: String
   }
+
+  type User {
+  	_id: String,
+  	name: String,
+  	image: String,
+  	email: String,
+  	social: String,
+  	online: Boolean,
+  	lastLogin: String
+  }
+
+  type UserChat {
+  	_id: String,
+  	user: User,
+  	contentId: String
+  	content: [Content]
+  }
+
+  type Query {
+    getAcc : [Acc],
+    userChat(userId: String): [UserChat],
+  }
+
   type Mutation {
     insertAcc: String
   }
