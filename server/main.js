@@ -12,6 +12,29 @@ import schema from '../imports/api/schema';
 const GRAPHQL_PORT = 8080;
 const WS_PORT = 8090;
 
+import { Mongo } from 'meteor/mongo';
+import { Accounts } from 'meteor/accounts-base';
+__     = require('lodash');
+moment = require('moment');
+Meteor.startup(function () {
+    if (Meteor.users.find({}).count() === 0) {
+        Meteor.users.insert({
+            _id: '0',
+            username: 'admin',
+            emails: [
+                {
+                    address: 'nguyenxuanvinh55th2@gmail.com',
+                    verified: false
+                }
+            ],
+            profile:{
+                permissions: []
+            }
+        });
+        Accounts.setPassword('0', '12345678');
+    }
+  })
+
 const graphQLServer = express().use('*', cors());
 
 //config graphql

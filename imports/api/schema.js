@@ -15,7 +15,7 @@ const schema = [`
     getClassInfo(classId: String, userId: String, role: String): Class
   }
   type Mutation {
-    insertAcc: String
+    insertStockModel(info: String): String
   }
   type Subscription {
     getsub : String
