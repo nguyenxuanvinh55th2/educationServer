@@ -7,7 +7,6 @@ const schema = [`
     _id: String
     value: String
   }
-<<<<<<< HEAD
 
   type Content {
   	index: Int,
@@ -35,8 +34,11 @@ const schema = [`
   	content: [Content]
   }
 
+  type Class {
+    _id: String
+  }
+
   type Query {
-    getAcc : [Acc],
     userChat(userId: String): [UserChat],
     getBackgroundList: [Background],
     getClassInfo(classId: String, userId: String, role: String): Class
@@ -45,7 +47,7 @@ const schema = [`
   type Mutation {
     insertAcc: String
   }
-  
+
   type Subscription {
     getsub : String
   }

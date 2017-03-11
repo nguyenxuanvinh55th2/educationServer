@@ -2,8 +2,6 @@ import { Meteor } from 'meteor/meteor';
 
 //function trả về thông tin của một user theo userId
 const getUserInfo = (userId) => {
-  console.log(userId);
-
   query = Meteor.users.findOne({_id: userId});
   var user = {
     _id: query._id,
@@ -11,7 +9,7 @@ const getUserInfo = (userId) => {
     image: query.profileObj ? query.profileObj.imageUrl : query.picture.data.url,
     email: query.profileObj ? query.profileObj.email : query.email,
     social: query.googleId ? 'https://plus.google.com/u/0/' + query.googleId + '/posts' : 'https://facebook.com/u/0/' + query.id,
-    online: query.status.online,
+    //online: query.status.online,
     //lastLogin: getLastLogin(query.status.lastLogin.date)
   }
   return user
@@ -19,19 +17,20 @@ const getUserInfo = (userId) => {
 
 const resolveFunctions = {
   Query: {
-    getAcc: (root) => {
-      return AccountingObjects.find({}).fetch();
-    },
-
       //trả  về danh sách user online và tin nhắn
     //--------------------------------------------------------------------------------------//
     userChat: (root, { userId }) => {
-      console.log("message Meteor ", Meteor);
+
+      console.log("userId ", userId);
 
       //user list
       let usersList = []
 
       let friendList = Meteor.users.findOne({_id: userId}).friendList;
+
+      if(!friendList) {
+        friendList = [];
+      }
 
       //truy vấn trả về  thông tin cuser trong frinedList
       query = Meteor.users.find({ _id: { $in: friendList } }).fetch();
@@ -40,7 +39,7 @@ const resolveFunctions = {
         let id = item._id;
 
         //truy vấn trả về nội dung chat với user tương ưng
-        let chatQuery = ChatData.findOne({ members: { $all: [ userId, id ] } });
+        let chatQuery = ChatDatas.findOne({ members: { $all: [ userId, id ] } });
 
         let user = {
           _id: id,

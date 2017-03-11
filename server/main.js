@@ -12,6 +12,29 @@ import schema from '../imports/api/schema';
 const GRAPHQL_PORT = 8080;
 const WS_PORT = 8090;
 
+import { Mongo } from 'meteor/mongo';
+import { Accounts } from 'meteor/accounts-base';
+__     = require('lodash');
+moment = require('moment');
+Meteor.startup(function () {
+    if (Meteor.users.find({}).count() === 0) {
+        Meteor.users.insert({
+            _id: '0',
+            username: 'admin',
+            emails: [
+                {
+                    address: 'nguyenxuanvinh55th2@gmail.com',
+                    verified: false
+                }
+            ],
+            profile:{
+                permissions: []
+            }
+        });
+        Accounts.setPassword('0', '12345678');
+    }
+  })
+
 const graphQLServer = express().use('*', cors());
 
 //config graphql
@@ -51,11 +74,24 @@ new SubscriptionServer(
 );
 
 Meteor.methods({
-  loginFbGgUser: (user) => {
-    console.log(user);
-    let checkId = Meteor.users.find({$or: [{googleId: user.googleId}, {id: user.id}]}).count();
+  loginGgUser: (user) => {
+    let checkId = Meteor.users.find({googleId: user.googleId}).count();
     if(checkId === 0)
-      Meteor.users.insert(user);
-    return Meteor.users.findOne({$or: [{googleId: user.googleId}, {id: user.id}]})
+      Meteor.users.insert(user, (err) => {
+        if(err) {
+          console.log("message error ", err);
+        }
+      });
+    return Meteor.users.findOne({googleId: user.googleId});
+  },
+  loginFbUser: (user) => {
+    let checkId = Meteor.users.find({id: user.id}).count();
+    if(checkId === 0)
+      Meteor.users.insert(user, (err) => {
+        if(err) {
+          console.log("message error ", err);
+        }
+      });
+    return Meteor.users.findOne({id: user.id});
   }
 });
