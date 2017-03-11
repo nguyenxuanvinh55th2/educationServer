@@ -1,3 +1,5 @@
+import {Mongo} from 'meteor/mongo';
+
 Activities = new Mongo.Collection('activities');
 Activities.allow({
   insert: function () {

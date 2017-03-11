@@ -20,6 +20,7 @@ ddp-client@1.3.3
 ddp-common@1.2.8
 ddp-server@1.3.13
 ddp-rate-limiter@1.0.6
+ddp-server@1.3.13
 deps@1.0.12
 diff-sequence@1.0.7
 ecmascript@0.6.3
@@ -71,14 +72,9 @@ sha@1.0.9
 shell-server@0.2.2
 spacebars@1.0.13
 spacebars-compiler@1.1.0
-<<<<<<< HEAD
 standard-minifier-css@1.3.4
 standard-minifier-js@1.2.3
-=======
 srp@1.0.10
-standard-minifier-css@1.3.3
-standard-minifier-js@1.2.2
->>>>>>> f3f7c483f932fe5ae7337be037bb3640634829e5
 templating@1.3.0
 templating-compiler@1.3.0
 templating-runtime@1.3.0
