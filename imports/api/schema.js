@@ -46,6 +46,9 @@ const schema = [`
 
   type Mutation {
     insertStockModel(info: String): String
+    loginWithPassword(username: String, password: String): String
+    loginWithGoogle(info: String): String
+    loginWithFacebook(info: String): String
   }
 
   type Subscription {

@@ -24,7 +24,7 @@ Meteor.startup(function () {
             emails: [
                 {
                     address: 'nguyenxuanvinh55th2@gmail.com',
-                    verified: false
+                    verified: true
                 }
             ],
             profile:{
@@ -33,6 +33,26 @@ Meteor.startup(function () {
         });
         Accounts.setPassword('0', '12345678');
     }
+    ServiceConfiguration.configurations.upsert(
+      { service: "facebook" },
+      {
+        $set: {
+          appId: "265492483877076",
+          loginStyle: "popup",
+          secret: "2b1941b986c3aaa3069931a6c3ac6cd2"
+        }
+      }
+    );
+    ServiceConfiguration.configurations.upsert(
+     { service: "google" },
+     {
+       $set: {
+         clientId: "500871646789-sutbet90ovo14nub4f2l190ck6u93cgc.apps.googleusercontent.com",
+         loginStyle: "popup",
+         secret: "1fdmJC5O0DZ3SiNJI3vwyMeT"
+       }
+     }
+   );
   })
 
 const graphQLServer = express().use('*', cors());
