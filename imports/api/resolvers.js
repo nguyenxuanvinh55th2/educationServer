@@ -93,10 +93,7 @@ const resolveFunctions = {
                 let stampedLoginToken = Accounts._generateStampedLoginToken();
                 //hash stampedLoginToken then insert to services.resume.loginTokens
                 Accounts._insertLoginToken(user._id, stampedLoginToken);
-                return JSON.stringify({
-                    user: __.pick(user, ['_id', 'username', 'profile']),
-                    token: stampedLoginToken.token,
-                });
+                return JSON.stringify(Meteor.users.findOne({username}));
             }
         } else {
             throw "User not found!";
