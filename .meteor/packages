@@ -23,3 +23,5 @@ ostrio:files
 jalik:ufs
 accounts-base
 accounts-password
+accounts-facebook
+service-configuration

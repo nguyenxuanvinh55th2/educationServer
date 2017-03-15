@@ -135,6 +135,10 @@ const schema = [`
   type Mutation {
     insertAcc: String
     addClass(userId: String!, classItem: String!, subject: String!, courseTheme: String!): String
+    insertStockModel(info: String): String
+    loginWithPassword(username: String, password: String): String
+    loginWithGoogle(info: String): String
+    loginWithFacebook(info: String): String
   }
 
   type Subscription {

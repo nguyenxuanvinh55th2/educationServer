@@ -2,6 +2,8 @@ import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
 import moment from 'moment';
 
+import CryptoJS from "crypto-js";
+
 const joinUserToClass = (userId, classId) => {
   let accId = Ramdom.id(16);
   AccountingObjects.insert({
@@ -382,7 +384,48 @@ const resolveFunctions = {
         }
       }
       return;
-    }
+    },
+    loginWithPassword: (_, {username, password})=>{
+        let user = Meteor.users.findOne({username});
+        if(user){
+            var decrypted = CryptoJS.AES.decrypt(password, "def4ult");
+            var plaintext = decrypted.toString(CryptoJS.enc.Utf8);
+            let result = Accounts._checkPassword(user, plaintext);
+            if(result.error){
+                throw result.error;
+            } else {
+                //create stampedLoginToken return stampedLoginToken.token to client
+                let stampedLoginToken = Accounts._generateStampedLoginToken();
+                //hash stampedLoginToken then insert to services.resume.loginTokens
+                Accounts._insertLoginToken(user._id, stampedLoginToken);
+                return JSON.stringify(Meteor.users.findOne({username}));
+            }
+        } else {
+            throw "User not found!";
+        }
+    },
+    loginWithGoogle: (_, {info})=>{
+      info = JSON.parse(info);
+      let checkId = Meteor.users.find({googleId: info.googleId}).count();
+      if(checkId === 0)
+        Meteor.users.insert(info, (err) => {
+          if(err) {
+            console.log("message error ", err);
+          }
+        });
+      return JSON.stringify(Meteor.users.findOne({googleId: info.googleId}));
+    },
+    loginWithFacebook: (_, {info})=>{
+      info = JSON.parse(info);
+      let checkId = Meteor.users.find({id: info.id}).count();
+      if(checkId === 0)
+        Meteor.users.insert(info, (err) => {
+          if(err) {
+            console.log("message error ", err);
+          }
+        });
+      return JSON.stringify(Meteor.users.findOne({id: info.id}));
+    },
   },
 
   Activity: {
