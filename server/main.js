@@ -62,15 +62,15 @@ websocketServer.listen(WS_PORT, () => console.log( // eslint-disable-line no-con
 ));
 
 new SubscriptionServer(
-{
- onConnect: async (connectionParams) => {
-   // Implement if you need to handle and manage connection
- },
- subscriptionManager: subscriptionManager
-},
-{
- server: websocketServer
-}
+  {
+   onConnect: async (connectionParams) => {
+     // Implement if you need to handle and manage connection
+   },
+   subscriptionManager: subscriptionManager
+  },
+  {
+   server: websocketServer
+  }
 );
 
 Meteor.methods({

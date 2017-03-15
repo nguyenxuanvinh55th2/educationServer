@@ -2,6 +2,26 @@ import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
 import moment from 'moment';
 
+const joinUserToClass = (userId, classId) => {
+  let accId = Ramdom.id(16);
+  AccountingObjects.insert({
+    _id: accId,
+    objectId: classId,
+    isClass: true
+  });
+  let profileId = Random.id(16);
+  Profiles.insert({
+    _id: profileId,
+    name: 'student',
+    roles: ['userCanView', 'userCanUploadPoll']
+  });
+  Permissions.insert({
+    profileId: profileId,
+    userId,
+    accountingObjectId: accId
+  });
+}
+
 //function trả về các hoạt động ứng với một khóa học
 getActivityOfCourse = (courseId) => {
   let result = [];
@@ -141,32 +161,13 @@ getMemberReply = (topicId) => {
 
 //function trả về các user tương ứng với lớp
 const getUserByClass = (classId, type) => {
-  userList = [];
-  let profileQuery = Profiles.find({objectId: classId, objectType: 'class', userType: type}).fetch();
-  profileQuery.forEach(item => {
-    let userInfo = UserProfile.findOne({ profileId: item._id});
-    let userItem = {
-      _id: userInfo.userId,
-      name: '',
-      image: '',
-      social: '',
-      online: '',
-      lastLogin: ''
-    }
-    userList.push(userItem);
-  })
+  let accountingObjects = AccountingObjects.find({objectId: classId, isClass: true}).fetch().map(item => item._id);
+  let profiles = Profiles.find({name: type}).fetch().map(item => item._id);
+  let users = Permissions.find({profileId: {$in: profiles}, accountingObjectId: {$in: accountingObjects}}).fetch().map(item => item.userId);
 
-  userList.forEach(item => {
-    let query = Meteor.users.findOne({ _id: item._id });
-    item.name = query.profileObj ? query.profileObj.name : query.name;
-    item.image = query.profileObj ? query.profileObj.imageUrl : query.picture.data.url;
-    item.email = query.profileObj ? query.profileObj.email : query.email
-    item.social = query.googleId ? 'https://plus.google.com/u/0/' + query.googleId + '/posts' : 'https://facebook.com/u/0/' + query.id;
-    item.online = query.status.online;
-    //userList[i].lastLogin = getLastLogin(query.status.lastLogin.date)
-  })
+  let userList = Meteor.users.find({_id: {$in: users}}).fetch();
 
-  if(type === 'creater') {
+  if(type === 'creater' || type === 'teacher') {
     return userList[0];
   } else {
     return userList;
@@ -258,9 +259,6 @@ const resolveFunctions = {
   },
 
   Mutation: {
-    insertAcc: (root) => {
-      return;
-    },
     addClass: (_, {userId, classItem, subject, courseTheme}) => {
       let classId = Random.id(16);
       classItem = JSON.parse(classItem);
@@ -273,6 +271,9 @@ const resolveFunctions = {
       courseTheme = JSON.parse(courseTheme);
       let user = Meteor.users.findOne({_id: userId});
       if(user) {
+        __.forEach(classItem.students, item =>{
+          joinUserToClass(item, classId);
+        })
         Classes.insert(classItem);
         let accId = Random.id(16);
         AccountingObjects.insert({
@@ -283,17 +284,21 @@ const resolveFunctions = {
         let profileId = Random.id(16);
         Profiles.insert({
           _id: profileId,
-          name: 'teacher',
-          roles: ['userCanManage', 'userCanView', 'userCanTeach']
+          name: 'creater',
+          roles: ['userCanManage', 'userCanView', 'userCanUploadLesson', 'userCanUploadAssignment', 'userCanUploadPoll', 'userCanuploadTest']
         });
         Permissions.insert({
           profileId: profileId,
           userId,
           accountingObjectId: accId
         });
+        accId = Random.id(16);
+        profileId = Random.id(16);
         if(courseTheme._id) {
           if(subject._id) {
+            let courseId = Random.id(16);
             let course = {
+              _id: courseId,
               subjectId: subject._id,
               classId,
               isOpen: true,
@@ -303,6 +308,21 @@ const resolveFunctions = {
               dateEnd: courseTheme.dateEnd
             }
             Courses.insert(course);
+            AccountingObjects.insert({
+              _id: accId,
+              objectId: courseId,
+              isCourse: true
+            });
+            Profiles.insert({
+              _id: profileId,
+              name: 'teacher',
+              roles: ['userCanManage', 'userCanView', 'userCanUploadLesson', 'userCanUploadAssignment', 'userCanUploadPoll', 'userCanuploadTest']
+            });
+            Permissions.insert({
+              profileId: profileId,
+              userId,
+              accountingObjectId: accId
+            });
           } else {
               console.log("subject ", subject);
               let subjectId = Random.id(16);

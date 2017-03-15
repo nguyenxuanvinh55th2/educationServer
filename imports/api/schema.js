@@ -117,7 +117,7 @@ const schema = [`
     createAt: Float
     createrId: String
     courses: [Course]
-    teacher: [User]
+    teacher: User
     student: [User]
   }
 
