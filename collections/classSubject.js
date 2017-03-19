@@ -1,5 +1,5 @@
-CourseThemes = new Mongo.Collection('courseThemes');
-CourseThemes.allow({
+ClassSubject = new Mongo.Collection('courses');
+ClassSubject.allow({
   insert: function () {
       return true;
   },
