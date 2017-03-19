@@ -23,7 +23,7 @@ const schema = [`
   	date: String
   }
 
-  type Course {
+  type ClassSubject {
   	_id: String,
   	subjectName: String,
   	dateStart: String,
@@ -33,7 +33,7 @@ const schema = [`
   	activity: [Activity]
   }
 
-  type CourseTheme {
+  type Course {
     _id: String,
     name: String,
     dateStart: Float,
@@ -65,7 +65,7 @@ const schema = [`
   	ownerId: String,
   	owner: User,
   	createAt: Float
-  	courses: [Course]
+  	classSubjects: [ClassSubject]
   }
 
   type User {
@@ -116,7 +116,7 @@ const schema = [`
     role: String
     createAt: Float
     createrId: String
-    courses: [Course]
+    classSubjects: [ClassSubject]
     teacher: User
     student: [User]
   }
@@ -134,18 +134,19 @@ const schema = [`
     getBackgroundList: [Background],
     getClassInfo(classId: String, userId: String, role: String): Class
     subjects: [Subject],
-    courseThemes: [CourseTheme],
+    courses: [Course],
     classInfo(classId: String, userId: String, role: String): Class
     getAllCouse: [CourseOfYear]
   }
 
   type Mutation {
     insertAcc: String
-    addClass(userId: String!, classItem: String!, subject: String!, courseTheme: String!): String
+    addClass(userId: String!, classItem: String!, subject: String!, course: String!): String
     insertStockModel(info: String): String
     loginWithPassword(username: String, password: String): String
     loginWithGoogle(info: String): String
     loginWithFacebook(info: String): String
+    insertQuestionSet(userId: String!, questionSet: String!, questions: [String]!): String
   }
 
   type Subscription {

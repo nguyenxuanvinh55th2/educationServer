@@ -91,7 +91,7 @@ getClassByUser = (userId, role) => {
 //function trả về các khóa học ứng với một lớp
 getCourseByClass = (classId) => {
   let courses = [];
-  let courseQuery = Courses.find({ classId: classId}).fetch();
+  let courseQuery = ClassSubject.find({ classId: classId}).fetch();
   courseQuery.forEach(item => {
     subjectInfo = Subjects.findOne({_id: item.subjectId})
     let course = {
@@ -109,7 +109,7 @@ getCourseByClass = (classId) => {
 
 getPublicCourseOfSubject = (subjectId) => {
   let courses = [];
-  let courseQuery = Courses.find({ subjectId: subjectId, publicActivity: true}).fetch();
+  let courseQuery = ClassSubject.find({ subjectId: subjectId, publicActivity: true}).fetch();
   courseQuery.forEach(item => {
     subjectInfo = Subjects.findOne({_id: subjectId})
     let course = {
@@ -191,8 +191,8 @@ const resolveFunctions = {
       return classItem;
     },
 
-    courseThemes: (root) => {
-      return CourseThemes.find({}).fetch();
+    courses: (root) => {
+      return Courses.find({}).fetch();
     },
 
       //trả  về danh sách user online và tin nhắn
@@ -264,7 +264,7 @@ const resolveFunctions = {
   },
 
   Mutation: {
-    addClass: (_, {userId, classItem, subject, courseTheme}) => {
+    addClass: (_, {userId, classItem, subject, course}) => {
       let classId = Random.id(16);
       classItem = JSON.parse(classItem);
       classItem['_id'] = classId;
@@ -273,7 +273,7 @@ const resolveFunctions = {
       console.log("subject String ", subject);
       subject = JSON.parse(subject);
       console.log("subject object ", subject);
-      courseTheme = JSON.parse(courseTheme);
+      course = JSON.parse(course);
       let user = Meteor.users.findOne({_id: userId});
       if(user) {
         __.forEach(classItem.students, item =>{
@@ -299,7 +299,7 @@ const resolveFunctions = {
         });
         accId = Random.id(16);
         profileId = Random.id(16);
-        if(courseTheme._id) {
+        if(course._id) {
           if(subject._id) {
             let courseId = Random.id(16);
             let course = {
@@ -308,11 +308,11 @@ const resolveFunctions = {
               classId,
               isOpen: true,
               publicActivity: true,
-              curseThemeId: courseTheme._id,
-              dateStart: courseTheme.dateStart,
-              dateEnd: courseTheme.dateEnd
+              curseThemeId: Course._id,
+              dateStart: course.dateStart,
+              dateEnd: course.dateEnd
             }
-            Courses.insert(course);
+            ClassSubject.insert(course);
             AccountingObjects.insert({
               _id: accId,
               objectId: courseId,
@@ -337,21 +337,21 @@ const resolveFunctions = {
                 createrId: userId,
                 createAt: moment().valueOf()
               });
-              Courses.insert({
+              ClassSubject.insert({
                 subjectId: subjectId,
                 classId,
                 isOpen: true,
                 publicActivity: true,
-                curseThemeId: courseTheme._id,
-                dateStart: courseTheme.dateStart,
-                dateEnd: courseTheme.dateEnd
+                curseThemeId: course._id,
+                dateStart: course.dateStart,
+                dateEnd: course.dateEnd
               });
           }
         } else {
-            let courseThemeId = Random.id(16);
-            CourseThemes.insert({
-              _id: courseThemeId,
-              name: courseTheme.name,
+            let courseId = Random.id(16);
+            Courses.insert({
+              _id: courseId,
+              name: course.name,
               createAt: moment().valueOf(),
               createrId: userId
             });
@@ -361,11 +361,11 @@ const resolveFunctions = {
                 classId,
                 isOpen: true,
                 publicActivity: true,
-                courseThemeId,
-                dateStart: courseTheme.dateStart,
-                dateEnd: courseTheme.dateEnd
+                courseId,
+                dateStart: course.dateStart,
+                dateEnd: course.dateEnd
               }
-              Courses.insert(course);
+              ClassSubject.insert(course);
             } else {
                 let subjectId = Random.id(16);
                 Subjects.insert({
@@ -374,14 +374,14 @@ const resolveFunctions = {
                   createrId: userId,
                   createAt: moment().valueOf()
                 });
-                Courses.insert({
+                ClassSubject.insert({
                   subjectId: subjectId,
                   classId,
                   isOpen: true,
                   publicActivity: true,
                   curseThemeId,
-                  dateStart: courseTheme.dateStart,
-                  dateEnd: courseTheme.dateEnd
+                  dateStart: course.dateStart,
+                  dateEnd: course.dateEnd
                 });
             }
         }
@@ -429,6 +429,27 @@ const resolveFunctions = {
         });
       return JSON.stringify(Meteor.users.findOne({id: info.id}));
     },
+    insertQuestionSet: (_, {userId, questionSet, questions}) => {
+      let user = Meteor.users.findOne(_id: userId);
+      if(user) {
+        questionSet = JSON.parse(questionSet);
+        questionSet['createdAt'] = moment().valueOf();
+        questionSet['createdBy'] = {
+          _id: user._id,
+          name: user.username
+        }
+        QuestionSet.insert(questionSet);
+        __.forEach(questions, item => {
+          item = JSON.parse(item);
+          item['createdAt'] = moment().valueOf();
+          item['createdBy'] = {
+            _id: user._id,
+            name: user.username
+          }
+          Questions.insert(item);
+        });
+      }
+    }
   },
 
   Activity: {
@@ -437,7 +458,7 @@ const resolveFunctions = {
     }
   },
 
-  Course: {
+  ClassSubject: {
     activity(root) {
       return getActivityOfCourse(root._id);
     },
@@ -470,7 +491,7 @@ const resolveFunctions = {
     owner(root) {
       return getUserInfo(root.ownerId)
     },
-    courses(root) {
+    classSubjects(root) {
       return getPublicCourseOfSubject(root._id)
     }
   },
@@ -509,7 +530,7 @@ const resolveFunctions = {
     student(root) {
       return getUserByClass(root._id, 'student');
     },
-    courses(root) {
+    classSubjects(root) {
       return getCourseByClass(root._id)
     }
   },
