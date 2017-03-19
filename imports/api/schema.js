@@ -120,7 +120,13 @@ const schema = [`
     teacher: User
     student: [User]
   }
-
+  type CourseOfYear {
+    _id: String
+    name: String
+    dateStart: Float
+    dateEnd: Float
+    classes: [Class]
+  }
   type Query {
     userChat(userId: String): [UserChat],
     userClass(userId: String): UserClass,
@@ -130,6 +136,7 @@ const schema = [`
     subjects: [Subject],
     courseThemes: [CourseTheme],
     classInfo(classId: String, userId: String, role: String): Class
+    getAllCouse: [CourseOfYear]
   }
 
   type Mutation {
