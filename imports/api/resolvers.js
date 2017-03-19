@@ -427,25 +427,26 @@ const resolveFunctions = {
       return JSON.stringify(Meteor.users.findOne({id: info.id}));
     },
     insertQuestionSet: (_, {userId, questionSet, questions}) => {
-      let user = Meteor.users.findOne(_id: userId);
-      if(user) {
+      // let user = Meteor.users.findOne(_id: userId);
+      // if(user) {
         questionSet = JSON.parse(questionSet);
         questionSet['createdAt'] = moment().valueOf();
-        questionSet['createdBy'] = {
-          _id: user._id,
-          name: user.username
-        }
+        questionSet['questionCount'] = questions.length;
+        // questionSet['createdBy'] = {
+        //   _id: user._id,
+        //   name: user.username
+        // }
         QuestionSet.insert(questionSet);
         __.forEach(questions, item => {
           item = JSON.parse(item);
           item['createdAt'] = moment().valueOf();
-          item['createdBy'] = {
-            _id: user._id,
-            name: user.username
-          }
+          // item['createdBy'] = {
+          //   _id: user._id,
+          //   name: user.username
+          // }
           Questions.insert(item);
         });
-      }
+      //}
     }
   },
 
