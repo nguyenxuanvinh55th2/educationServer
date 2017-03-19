@@ -204,7 +204,7 @@ const resolveFunctions = {
       //user list
       let usersList = []
 
-      let friendList = Meteor.users.findOne({_id: userId}).friendList;
+      let friendList = Meteor.users.findOne({_id: userId}) ? Meteor.users.findOne({_id: userId}).friendList : '';
 
       if(!friendList) {
         friendList = [];
@@ -258,8 +258,8 @@ const resolveFunctions = {
     userClass: (root, { userId }) => {
       return { userId: userId }
     },
-    getAllCouse: (root) => {
-      return Courses.find({_id:Courses.find({}).map((item) => item.courseId)}).fetch();
+    courses: (root) => {
+      return Courses.find({_id:ClassSubject.find({}).map((item) => item.courseId)}).fetch();
     }
   },
 
@@ -534,9 +534,9 @@ const resolveFunctions = {
       return getCourseByClass(root._id)
     }
   },
-  CourseOfYear: {
+  Course: {
     classes: ({_id}) => {
-      return Classes.find({_id: Courses.find({courseId: _id}).map((item) => item._id)}).fetch();
+      return Classes.find({_id: ClassSubject.find({courseId: _id}).map((item) => item._id)}).fetch();
     }
   },
   Subscription: {
