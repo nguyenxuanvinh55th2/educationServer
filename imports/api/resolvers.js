@@ -439,21 +439,18 @@ const resolveFunctions = {
             console.log("message error ", err);
           }
           else {
-            let user = Meteor.users.findOne({googleId: info.googleId});
-            Accounts._insertLoginToken(user._id, stampedLoginToken);
+            console.log("f");
             return JSON.stringify({
               user: user,
-              token: stampedLoginToken.token
+              token: info.accessToken
             });
           }
         });
       }
       else {
-        let user = Meteor.users.findOne({googleId: info.googleId});
-        Accounts._insertLoginToken(user._id, stampedLoginToken);
         return JSON.stringify({
-          user: user,
-          token: stampedLoginToken.token
+          user: Meteor.users.findOne({googleId: info.googleId}),
+          token: info.accessToken
         });
       }
     },
