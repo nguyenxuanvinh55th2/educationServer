@@ -1,4 +1,4 @@
-ClassSubject = new Mongo.Collection('courses');
+ClassSubject = new Mongo.Collection('classSubject');
 ClassSubject.allow({
   insert: function () {
       return true;
