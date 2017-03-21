@@ -122,6 +122,7 @@ const schema = [`
     student: [User]
   }
   type Query {
+    getInfoUser(token: String): String
     userChat(userId: String): [UserChat],
     userClass(userId: String): UserClass,
     users: [User],
@@ -133,6 +134,7 @@ const schema = [`
   }
 
   type Mutation {
+    logoutUser(userId: String, token: String): String
     insertAcc: String
     addClass(userId: String!, classItem: String!, subject: String!, course: String!): String
     insertStockModel(info: String): String
