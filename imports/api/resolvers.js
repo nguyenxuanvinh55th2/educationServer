@@ -2,6 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
 import moment from 'moment';
 
+Future = Npm.require('fibers/future');
 import CryptoJS from "crypto-js";
 
 const joinUserToClass = (userId, classId) => {
@@ -193,6 +194,14 @@ const resolveFunctions = {
 
     courses: (root) => {
       return Courses.find({}).fetch();
+    },
+
+    questionBankUser: (root, { userId }) => {
+      return QuestionSets.find({'createdBy._id' : userId}).fetch();
+    },
+
+    questionBank: () => {
+      return Questions.find({isPublic: true}).fetch();
     },
 
       //trả  về danh sách user online và tin nhắn
@@ -429,24 +438,63 @@ const resolveFunctions = {
     insertQuestionSet: (_, {userId, questionSet, questions}) => {
       // let user = Meteor.users.findOne(_id: userId);
       // if(user) {
+        let future = new Future();
+        console.log("questionSet ", questionSet);
+        // let questionList = [];
+        // __.forEach(questions, item => {
+        //   questionList.push(JSON.parse(item))
+        // });
+
+        questionSetId = Random.id(16);
         questionSet = JSON.parse(questionSet);
+        questionSet['_id'] = questionSetId;
         questionSet['createdAt'] = moment().valueOf();
-        questionSet['questionCount'] = questions.length;
         // questionSet['createdBy'] = {
         //   _id: user._id,
         //   name: user.username
         // }
-        QuestionSet.insert(questionSet);
+        QuestionSets.insert(questionSet, (err, _id) => {
+          if(err) {
+
+          } else {
+              future.return(_id)
+          }
+        });
         __.forEach(questions, item => {
+          questionId = Random.id(16);
           item = JSON.parse(item);
+          item['_id'] = questionId;
           item['createdAt'] = moment().valueOf();
           // item['createdBy'] = {
           //   _id: user._id,
           //   name: user.username
           // }
           Questions.insert(item);
+          QuestionHave.insert({
+            questionSetId,
+            questionId,
+            score: item.score
+          })
         });
+        return future.wait();
       //}
+    },
+    insertExamination: (_, {userId, info}) => {
+      // let user = Meteor.users.findOne(_id: userId);
+      // if(user) {
+           info = JSON.parse(info);
+           info['createdAt'] = moment().valueOf();
+           // item['createdBy'] = {
+           //   _id: user._id,
+           //   name: user.username
+           // }
+           Examinations.insert(info);
+        // let questionList = [];
+        // __.forEach(questions, item => {
+        //   questionList.push(JSON.parse(item))
+        // });
+      //}
+      return
     }
   },
 

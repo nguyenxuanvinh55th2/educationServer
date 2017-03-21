@@ -107,6 +107,22 @@ const schema = [`
   	memberReply: [MemberReply]
   }
 
+  type Question {
+    _id: String,
+    question: String,
+    answerSet: [String],
+    correctAnswer: [String],
+    correctRate: Float,
+  }
+
+  type QuestionSet {
+    _id: String,
+    title: String,
+    description: String,
+    questionCount: Int,
+    questions: [Question]
+  }
+
   type Class {
     _id: String
     code: String
@@ -130,6 +146,8 @@ const schema = [`
     subjects: [Subject],
     courses: [Course],
     classInfo(classId: String, userId: String, role: String): Class
+    questionBankUser(userId: String!): [QuestionSet]
+    questionBank: [Question]
   }
 
   type Mutation {
@@ -140,6 +158,7 @@ const schema = [`
     loginWithGoogle(info: String): String
     loginWithFacebook(info: String): String
     insertQuestionSet(userId: String!, questionSet: String!, questions: [String]!): String
+    insertExamination(userId: String!, info: String!): String
   }
 
   type Subscription {
