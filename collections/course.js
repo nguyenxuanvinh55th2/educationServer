@@ -1,4 +1,4 @@
-Courses = new Mongo.Collection('course');
+Courses = new Mongo.Collection('courses');
 Courses.allow({
   insert: function () {
       return true;

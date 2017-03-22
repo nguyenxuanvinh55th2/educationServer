@@ -1,5 +1,5 @@
-QuestionHave = new Mongo.Collection('QuestionHave');
-QuestionHave.allow({
+QuestionHaves = new Mongo.Collection('questionHaves');
+QuestionHaves.allow({
   insert: function () {
       // the user must be logged in, and the document must be owned by the user
       return true;

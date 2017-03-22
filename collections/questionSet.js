@@ -1,4 +1,4 @@
-QuestionSets = new Mongo.Collection('QuestionSets');
+QuestionSets = new Mongo.Collection('questionSets');
 QuestionSets.allow({
   insert: function () {
       // the user must be logged in, and the document must be owned by the user

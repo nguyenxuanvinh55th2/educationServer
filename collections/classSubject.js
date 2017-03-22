@@ -1,5 +1,5 @@
-ClassSubject = new Mongo.Collection('classSubject');
-ClassSubject.allow({
+ClassSubjects = new Mongo.Collection('classSubjects');
+ClassSubjects.allow({
   insert: function () {
       return true;
   },

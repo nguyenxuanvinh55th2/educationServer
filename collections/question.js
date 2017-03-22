@@ -1,4 +1,4 @@
-Questions = new Mongo.Collection('Questions');
+Questions = new Mongo.Collection('questions');
 Questions.allow({
   insert: function () {
       // the user must be logged in, and the document must be owned by the user

@@ -88,7 +88,7 @@ getClassByUser = (userId, role) => {
 //function trả về các khóa học ứng với một lớp
 getCourseByClass = (classId) => {
   let courses = [];
-  let courseQuery = ClassSubject.find({ classId: classId}).fetch();
+  let courseQuery = ClassSubjects.find({ classId: classId}).fetch();
   courseQuery.forEach(item => {
     subjectInfo = Subjects.findOne({_id: item.subjectId})
     let course = {
@@ -106,7 +106,7 @@ getCourseByClass = (classId) => {
 
 getPublicCourseOfSubject = (subjectId) => {
   let courses = [];
-  let courseQuery = ClassSubject.find({ subjectId: subjectId, publicActivity: true}).fetch();
+  let courseQuery = ClassSubjects.find({ subjectId: subjectId, publicActivity: true}).fetch();
   courseQuery.forEach(item => {
     subjectInfo = Subjects.findOne({_id: subjectId})
     let course = {
@@ -270,7 +270,7 @@ const resolveFunctions = {
       return { userId: userId }
     },
     courses: (root) => {
-      return Courses.find({_id:ClassSubject.find({}).map((item) => item.courseId)}).fetch();
+      return Courses.find({_id:ClassSubjects.find({}).map((item) => item.courseId)}).fetch();
     }
   },
 
@@ -331,7 +331,7 @@ const resolveFunctions = {
               dateStart: course.dateStart,
               dateEnd: course.dateEnd
             }
-            ClassSubject.insert(course);
+            ClassSubjects.insert(course);
             AccountingObjects.insert({
               _id: accId,
               objectId: courseId,
@@ -355,7 +355,7 @@ const resolveFunctions = {
                 createrId: userId,
                 createAt: moment().valueOf()
               });
-              ClassSubject.insert({
+              ClassSubjects.insert({
                 subjectId: subjectId,
                 classId,
                 isOpen: true,
@@ -383,7 +383,7 @@ const resolveFunctions = {
                 dateStart: course.dateStart,
                 dateEnd: course.dateEnd
               }
-              ClassSubject.insert(course);
+              ClassSubjects.insert(course);
             } else {
                 let subjectId = Random.id(16);
                 Subjects.insert({
@@ -392,7 +392,7 @@ const resolveFunctions = {
                   createrId: userId,
                   createAt: moment().valueOf()
                 });
-                ClassSubject.insert({
+                ClassSubjects.insert({
                   subjectId: subjectId,
                   classId,
                   isOpen: true,
@@ -539,6 +539,16 @@ const resolveFunctions = {
         // });
       //}
       return
+    },
+    insertCourse: (_,{userId,info}) => {
+      let user = Meteor.users.findOne({_id: userId});
+      if(user){
+        info = JSON.parse(info);
+        info.createdAt = moment().valueOf();
+        info.createdById = user._id;
+        return Courses.insert(info);
+      }
+      return ''
     }
   },
 
@@ -626,7 +636,7 @@ const resolveFunctions = {
   },
   Course: {
     classes: ({_id}) => {
-      return Classes.find({_id: ClassSubject.find({courseId: _id}).map((item) => item._id)}).fetch();
+      return Classes.find({_id: ClassSubjects.find({courseId: _id}).map((item) => item._id)}).fetch();
     }
   },
   Subscription: {
