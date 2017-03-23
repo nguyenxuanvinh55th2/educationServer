@@ -276,14 +276,20 @@ const resolveFunctions = {
 
   Mutation: {
     logoutUser: (_, {userId, token})=>{
-        if(userId){
-            return Accounts.destroyToken(userId, Accounts._hashLoginToken(token));
-        } else {
-            let user = Meteor.users.findOne({'services.resume.loginTokens': {$elemMatch: {hashedToken: Accounts._hashLoginToken(token)}}});
-            if(user){
-                return Accounts.destroyToken(user._id, Accounts._hashLoginToken(token));
-            }
+      let future = new Future();
+      if(userId && token){
+        let user = Meteor.users.findOne({_id: userId});
+        if(user){
+          future.return(user._id);
         }
+        else {
+          future.return();
+        }
+      }
+      else {
+        future.return();
+      }
+      return future.wait();
     },
     addClass: (_, {userId, classItem, subject, course}) => {
       let classId = Random.id(16);
