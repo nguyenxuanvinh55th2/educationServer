@@ -147,7 +147,7 @@ const schema = [`
     subjects: [Subject],
     courses: [Course],
     classInfo(classId: String, userId: String, role: String): Class
-    questionBankUser(userId: String!): [QuestionSet]
+    questionSetBankUser(userId: String!): [QuestionSet]
     questionBank: [Question]
   }
 

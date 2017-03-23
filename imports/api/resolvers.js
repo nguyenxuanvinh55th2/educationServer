@@ -200,8 +200,8 @@ const resolveFunctions = {
       return Courses.find({}).fetch();
     },
 
-    questionBankUser: (root, { userId }) => {
-      return QuestionSets.find({'createdBy._id' : userId}).fetch();
+    questionSetBankUser: (root, { userId }) => {
+      return QuestionSets.find({'createdById' : userId}).fetch();
     },
 
     questionBank: () => {
@@ -484,22 +484,14 @@ const resolveFunctions = {
       }
     },
     insertQuestionSet: (_, {userId, questionSet, questions}) => {
-      // let user = Meteor.users.findOne(_id: userId);
-      // if(user) {
+      let user = Meteor.users.findOne({_id: userId});
+      if(user) {
         let future = new Future();
-        // let questionList = [];
-        // __.forEach(questions, item => {
-        //   questionList.push(JSON.parse(item))
-        // });
-
         questionSetId = Random.id(16);
         questionSet = JSON.parse(questionSet);
         questionSet['_id'] = questionSetId;
         questionSet['createdAt'] = moment().valueOf();
-        // questionSet['createdBy'] = {
-        //   _id: user._id,
-        //   name: user.username
-        // }
+        questionSet['createdById'] = user._id,
         QuestionSets.insert(questionSet, (err, _id) => {
           if(err) {
 
@@ -512,35 +504,24 @@ const resolveFunctions = {
           item = JSON.parse(item);
           item['_id'] = questionId;
           item['createdAt'] = moment().valueOf();
-          // item['createdBy'] = {
-          //   _id: user._id,
-          //   name: user.username
-          // }
+          item['createdById'] = user._id;
           Questions.insert(item);
-          QuestionHave.insert({
+          QuestionHaves.insert({
             questionSetId,
             questionId,
             score: item.score
           })
         });
         return future.wait();
-      //}
+      }
     },
     insertExamination: (_, {userId, info}) => {
-      // let user = Meteor.users.findOne(_id: userId);
-      // if(user) {
+      let user = Meteor.users.findOne({_id: userId});
+      if(user) {
            info = JSON.parse(info);
            info['createdAt'] = moment().valueOf();
-           // item['createdBy'] = {
-           //   _id: user._id,
-           //   name: user.username
-           // }
-           Examinations.insert(info);
-        // let questionList = [];
-        // __.forEach(questions, item => {
-        //   questionList.push(JSON.parse(item))
-        // });
-      //}
+           item['createdById'] = user._id;
+      }
       return
     }
   },
@@ -630,6 +611,12 @@ const resolveFunctions = {
   Course: {
     classes: ({_id}) => {
       return Classes.find({_id: ClassSubject.find({courseId: _id}).map((item) => item._id)}).fetch();
+    }
+  },
+  QuestionSet: {
+    questions:  ({_id}) => {
+      let questionHaves = QuestionHaves.find({questionSetId: _id}).map(item => item.questionId);
+      return Questions.find({_id: {$in: questionHaves}}).fetch();
     }
   },
   Subscription: {
