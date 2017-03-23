@@ -160,7 +160,8 @@ const schema = [`
     loginWithGoogle(info: String): String
     loginWithFacebook(info: String): String
     insertQuestionSet(userId: String!, questionSet: String!, questions: [String]!): String
-    insertExamination(userId: String!, info: String!): String
+    insertExamination(userId: String!, info: String!): String,
+    insertCourse(userId: String!, info: String!): String
   }
 
   type Subscription {

@@ -88,7 +88,7 @@ getClassByUser = (userId, role) => {
 //function trả về các khóa học ứng với một lớp
 getCourseByClass = (classId) => {
   let courses = [];
-  let courseQuery = ClassSubject.find({ classId: classId}).fetch();
+  let courseQuery = ClassSubjects.find({ classId: classId}).fetch();
   courseQuery.forEach(item => {
     subjectInfo = Subjects.findOne({_id: item.subjectId})
     let course = {
@@ -106,7 +106,7 @@ getCourseByClass = (classId) => {
 
 getPublicCourseOfSubject = (subjectId) => {
   let courses = [];
-  let courseQuery = ClassSubject.find({ subjectId: subjectId, publicActivity: true}).fetch();
+  let courseQuery = ClassSubjects.find({ subjectId: subjectId, publicActivity: true}).fetch();
   courseQuery.forEach(item => {
     subjectInfo = Subjects.findOne({_id: subjectId})
     let course = {
@@ -176,13 +176,13 @@ const getUserByClass = (classId, type) => {
 const resolveFunctions = {
   Query: {
     getInfoUser(root, {token}){
-        let hashedToken = token?Accounts._hashLoginToken(token):token;
-        let existsUser = Meteor.users.find({'services.resume.loginTokens': {$elemMatch: { hashedToken } }}).fetch()[0];
+      if(token){
+        let existsUser = Meteor.users.findOne({accessToken: token});
         if(existsUser){
-            return JSON.stringify(existsUser);
-        } else {
-            return ;
+          return JSON.stringify(existsUser);
         }
+      }
+      return ''
     },
     classInfo: (root, {classId, userId, role}) => {
       classQuery = Classes.findOne({_id: classId});
@@ -270,7 +270,7 @@ const resolveFunctions = {
       return { userId: userId }
     },
     courses: (root) => {
-      return Courses.find({_id:ClassSubject.find({}).map((item) => item.courseId)}).fetch();
+      return Courses.find({_id:ClassSubjects.find({}).map((item) => item.courseId)}).fetch();
     }
   },
 
@@ -331,7 +331,7 @@ const resolveFunctions = {
               dateStart: course.dateStart,
               dateEnd: course.dateEnd
             }
-            ClassSubject.insert(course);
+            ClassSubjects.insert(course);
             AccountingObjects.insert({
               _id: accId,
               objectId: courseId,
@@ -355,7 +355,7 @@ const resolveFunctions = {
                 createrId: userId,
                 createAt: moment().valueOf()
               });
-              ClassSubject.insert({
+              ClassSubjects.insert({
                 subjectId: subjectId,
                 classId,
                 isOpen: true,
@@ -383,7 +383,7 @@ const resolveFunctions = {
                 dateStart: course.dateStart,
                 dateEnd: course.dateEnd
               }
-              ClassSubject.insert(course);
+              ClassSubjects.insert(course);
             } else {
                 let subjectId = Random.id(16);
                 Subjects.insert({
@@ -392,7 +392,7 @@ const resolveFunctions = {
                   createrId: userId,
                   createAt: moment().valueOf()
                 });
-                ClassSubject.insert({
+                ClassSubjects.insert({
                   subjectId: subjectId,
                   classId,
                   isOpen: true,
@@ -415,10 +415,9 @@ const resolveFunctions = {
             if(result.error){
                 throw result.error;
             } else {
-                //create stampedLoginToken return stampedLoginToken.token to client
                 let stampedLoginToken = Accounts._generateStampedLoginToken();
-                //hash stampedLoginToken then insert to services.resume.loginTokens
                 Accounts._insertLoginToken(user._id, stampedLoginToken);
+                Meteor.users.update({_id: user._id},{$set:{accessToken: stampedLoginToken.token}})
                 return JSON.stringify({
                   user: user,
                   token: stampedLoginToken.token
@@ -429,59 +428,89 @@ const resolveFunctions = {
         }
     },
     loginWithGoogle: (_, {info})=>{
+      let future = new Future();
       info = JSON.parse(info);
       let checkId = Meteor.users.find({googleId: info.googleId}).count();
-      let stampedLoginToken = Accounts._generateStampedLoginToken();
       if(checkId === 0){
         Meteor.users.insert(info, (err) => {
           if(err) {
             console.log("message error ", err);
+            future.return();
           }
           else {
-            let user = Meteor.users.findOne({googleId: info.googleId});
-            Accounts._insertLoginToken(user._id, stampedLoginToken);
-            return JSON.stringify({
-              user: user,
-              token: stampedLoginToken.token
-            });
+            future.return(JSON.stringify({
+              user: Meteor.users.findOne({googleId: info.googleId}),
+              token: info.accessToken
+            }));
           }
         });
       }
       else {
-        let user = Meteor.users.findOne({googleId: info.googleId});
-        Accounts._insertLoginToken(user._id, stampedLoginToken);
-        return JSON.stringify({
-          user: user,
-          token: stampedLoginToken.token
-        });
+        // Meteor.users.update({googleId: info.googleId,{info}})
+        Meteor.users.remove({googleId: info.googleId},((error) => {
+          if(error){
+            console.log(error);
+            future.return();
+          }
+          else {
+            Meteor.users.insert(info, (err) => {
+              if(err) {
+                console.log("message error ", err);
+                future.return();
+              }
+              else {
+                 future.return(JSON.stringify({
+                  user: Meteor.users.findOne({googleId: info.googleId}),
+                  token: info.accessToken
+                }));
+              }
+            });
+          }
+        }));
       }
+      return future.wait();
     },
     loginWithFacebook: (_, {info})=>{
+      let future = new Future();
       info = JSON.parse(info);
-      let checkId = Meteor.users.find({id: info.id}).count();
+      let checkId = Meteor.users.find({userID: info.userID}).count();
       if(checkId === 0){
         Meteor.users.insert(info, (err) => {
           if(err) {
             console.log("message error ", err);
+            future.return();
           }
           else {
-            let user = Meteor.users.findOne({googleId: info.id});
-            Accounts._insertLoginToken(user._id, stampedLoginToken);
-            return JSON.stringify({
-              user: user,
-              token: stampedLoginToken.token
-            });
+            future.return(JSON.stringify({
+              user: Meteor.users.findOne({userID: info.userID}),
+              token: info.accessToken
+            }));
           }
         });
       }
       else {
-        let user = Meteor.users.findOne({googleId: info.googleId});
-        Accounts._insertLoginToken(user._id, stampedLoginToken);
-        return JSON.stringify({
-          user: user,
-          token: stampedLoginToken.token
-        });
+        Meteor.users.remove({userID: info.userID},((error) => {
+          if(error){
+            console.log(error);
+            future.return();
+          }
+          else {
+            Meteor.users.insert(info, (err) => {
+              if(err) {
+                console.log("message error ", err);
+                future.return();
+              }
+              else {
+                 future.return(JSON.stringify({
+                  user: Meteor.users.findOne({userID: info.userID}),
+                  token: info.accessToken
+                }));
+              }
+            });
+          }
+        }))
       }
+      return future.wait();
     },
     insertQuestionSet: (_, {userId, questionSet, questions}) => {
       let user = Meteor.users.findOne({_id: userId});
@@ -523,6 +552,16 @@ const resolveFunctions = {
            item['createdById'] = user._id;
       }
       return
+    },
+    insertCourse: (_,{userId,info}) => {
+      let user = Meteor.users.findOne({_id: userId});
+      if(user){
+        info = JSON.parse(info);
+        info.createdAt = moment().valueOf();
+        info.createdById = user._id;
+        return Courses.insert(info);
+      }
+      return ''
     }
   },
 
@@ -610,7 +649,7 @@ const resolveFunctions = {
   },
   Course: {
     classes: ({_id}) => {
-      return Classes.find({_id: ClassSubject.find({courseId: _id}).map((item) => item._id)}).fetch();
+      return Classes.find({_id: ClassSubjects.find({courseId: _id}).map((item) => item._id)}).fetch();
     }
   },
   QuestionSet: {
