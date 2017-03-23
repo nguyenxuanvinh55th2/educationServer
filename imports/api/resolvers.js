@@ -176,13 +176,13 @@ const getUserByClass = (classId, type) => {
 const resolveFunctions = {
   Query: {
     getInfoUser(root, {token}){
-        let hashedToken = token?Accounts._hashLoginToken(token):token;
-        let existsUser = Meteor.users.find({'services.resume.loginTokens': {$elemMatch: { hashedToken } }}).fetch()[0];
+      if(token){
+        let existsUser = Meteor.users.findOne({accessToken: token});
         if(existsUser){
-            return JSON.stringify(existsUser);
-        } else {
-            return ;
+          return JSON.stringify(existsUser);
         }
+      }
+      return ''
     },
     classInfo: (root, {classId, userId, role}) => {
       classQuery = Classes.findOne({_id: classId});
@@ -415,10 +415,9 @@ const resolveFunctions = {
             if(result.error){
                 throw result.error;
             } else {
-                //create stampedLoginToken return stampedLoginToken.token to client
                 let stampedLoginToken = Accounts._generateStampedLoginToken();
-                //hash stampedLoginToken then insert to services.resume.loginTokens
                 Accounts._insertLoginToken(user._id, stampedLoginToken);
+                Meteor.users.update({_id: user._id},{$set:{accessToken: stampedLoginToken.token}})
                 return JSON.stringify({
                   user: user,
                   token: stampedLoginToken.token
@@ -429,56 +428,89 @@ const resolveFunctions = {
         }
     },
     loginWithGoogle: (_, {info})=>{
+      let future = new Future();
       info = JSON.parse(info);
       let checkId = Meteor.users.find({googleId: info.googleId}).count();
-      let stampedLoginToken = Accounts._generateStampedLoginToken();
       if(checkId === 0){
         Meteor.users.insert(info, (err) => {
           if(err) {
             console.log("message error ", err);
+            future.return();
           }
           else {
-            console.log("f");
-            return JSON.stringify({
-              user: user,
+            future.return(JSON.stringify({
+              user: Meteor.users.findOne({googleId: info.googleId}),
               token: info.accessToken
-            });
+            }));
           }
         });
       }
       else {
-        return JSON.stringify({
-          user: Meteor.users.findOne({googleId: info.googleId}),
-          token: info.accessToken
-        });
+        // Meteor.users.update({googleId: info.googleId,{info}})
+        Meteor.users.remove({googleId: info.googleId},((error) => {
+          if(error){
+            console.log(error);
+            future.return();
+          }
+          else {
+            Meteor.users.insert(info, (err) => {
+              if(err) {
+                console.log("message error ", err);
+                future.return();
+              }
+              else {
+                 future.return(JSON.stringify({
+                  user: Meteor.users.findOne({googleId: info.googleId}),
+                  token: info.accessToken
+                }));
+              }
+            });
+          }
+        }));
       }
+      return future.wait();
     },
     loginWithFacebook: (_, {info})=>{
+      let future = new Future();
       info = JSON.parse(info);
-      let checkId = Meteor.users.find({id: info.id}).count();
+      let checkId = Meteor.users.find({userID: info.userID}).count();
       if(checkId === 0){
         Meteor.users.insert(info, (err) => {
           if(err) {
             console.log("message error ", err);
+            future.return();
           }
           else {
-            let user = Meteor.users.findOne({googleId: info.id});
-            Accounts._insertLoginToken(user._id, stampedLoginToken);
-            return JSON.stringify({
-              user: user,
-              token: stampedLoginToken.token
-            });
+            future.return(JSON.stringify({
+              user: Meteor.users.findOne({userID: info.userID}),
+              token: info.accessToken
+            }));
           }
         });
       }
       else {
-        let user = Meteor.users.findOne({googleId: info.googleId});
-        Accounts._insertLoginToken(user._id, stampedLoginToken);
-        return JSON.stringify({
-          user: user,
-          token: stampedLoginToken.token
-        });
+        Meteor.users.remove({userID: info.userID},((error) => {
+          if(error){
+            console.log(error);
+            future.return();
+          }
+          else {
+            Meteor.users.insert(info, (err) => {
+              if(err) {
+                console.log("message error ", err);
+                future.return();
+              }
+              else {
+                 future.return(JSON.stringify({
+                  user: Meteor.users.findOne({userID: info.userID}),
+                  token: info.accessToken
+                }));
+              }
+            });
+          }
+        }))
       }
+      return future.wait();
     },
     insertQuestionSet: (_, {userId, questionSet, questions}) => {
       // let user = Meteor.users.findOne(_id: userId);
