@@ -197,7 +197,11 @@ const resolveFunctions = {
     },
 
     courses: (root) => {
-      return Courses.find({}).fetch();
+      return Courses.find({}).map((course) => {
+        if(ClassSubjects.find({courseId: course._id})[0]){
+          return course;
+        }
+      });
     },
 
     questionSetBankUser: (root, { userId }) => {
@@ -656,6 +660,9 @@ const resolveFunctions = {
   Course: {
     classes: ({_id}) => {
       return Classes.find({_id: ClassSubjects.find({courseId: _id}).map((item) => item._id)}).fetch();
+    },
+    classSubjects: ({_id}) => {
+      return ClassSubjects.find({courseId: _id}).fetch();
     }
   },
   QuestionSet: {

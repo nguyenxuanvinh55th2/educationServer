@@ -39,6 +39,7 @@ const schema = [`
     dateStart: Float,
     dateEnd: Float
     classes: [Class]
+    classSubjects: [ClassSubject]
   }
 
   type File {
