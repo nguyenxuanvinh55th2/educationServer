@@ -34,9 +34,9 @@ const schema = [`
   }
 
   type Course {
-    _id: String,
-    name: String,
-    dateStart: Float,
+    _id: String
+    name: String
+    dateStart: Float
     dateEnd: Float
     classes: [Class]
     classSubjects: [ClassSubject]

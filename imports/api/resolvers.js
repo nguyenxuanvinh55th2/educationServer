@@ -195,15 +195,6 @@ const resolveFunctions = {
       }
       return classItem;
     },
-
-    courses: (root) => {
-      return Courses.find({}).map((course) => {
-        if(ClassSubjects.find({courseId: course._id})[0]){
-          return course;
-        }
-      });
-    },
-
     questionSetBankUser: (root, { userId }) => {
       return QuestionSets.find({'createdById' : userId}).fetch();
     },
@@ -274,7 +265,7 @@ const resolveFunctions = {
       return { userId: userId }
     },
     courses: (root) => {
-      return Courses.find({_id:ClassSubjects.find({}).map((item) => item.courseId)}).fetch();
+      return Courses.find({_id:{$in: ClassSubjects.find({}).map((item) => item.courseId)}}).fetch();
     }
   },
 
