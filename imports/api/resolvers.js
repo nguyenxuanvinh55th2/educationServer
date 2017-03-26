@@ -447,27 +447,17 @@ const resolveFunctions = {
         });
       }
       else {
-        // Meteor.users.update({googleId: info.googleId,{info}})
-        Meteor.users.remove({googleId: info.googleId},((error) => {
-          if(error){
-            console.log(error);
-            future.return();
-          }
-          else {
-            Meteor.users.insert(info, (err) => {
-              if(err) {
-                console.log("message error ", err);
-                future.return();
-              }
-              else {
-                 future.return(JSON.stringify({
-                  user: Meteor.users.findOne({googleId: info.googleId}),
-                  token: info.accessToken
-                }));
-              }
-            });
-          }
-        }));
+          Meteor.users.update({googleId: info.googleId},{$set:info},(error) => {
+            if(error){
+              future.return();
+            }
+            else {
+              future.return(JSON.stringify({
+                      user: Meteor.users.findOne({googleId: info.googleId}),
+                      token: info.accessToken
+                    }));
+            }
+          });
       }
       return future.wait();
     },
@@ -490,26 +480,17 @@ const resolveFunctions = {
         });
       }
       else {
-        Meteor.users.remove({userID: info.userID},((error) => {
+        Meteor.users.update({userID: info.userID},{$set:info},(error) => {
           if(error){
-            console.log(error);
             future.return();
           }
           else {
-            Meteor.users.insert(info, (err) => {
-              if(err) {
-                console.log("message error ", err);
-                future.return();
-              }
-              else {
-                 future.return(JSON.stringify({
-                  user: Meteor.users.findOne({userID: info.userID}),
-                  token: info.accessToken
-                }));
-              }
-            });
+            future.return(JSON.stringify({
+                   user: Meteor.users.findOne({userID: info.userID}),
+                   token: info.accessToken
+                 }));
           }
-        }))
+        });
       }
       return future.wait();
     },
