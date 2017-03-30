@@ -265,6 +265,9 @@ const resolveFunctions = {
       return { userId: userId }
     },
     courses: (root) => {
+      return Courses.find({}).fetch();
+    },
+    coursesActive: (root) => {
       return Courses.find({_id:{$in: ClassSubjects.find({}).map((item) => item.courseId)}}).fetch();
     }
   },
@@ -542,6 +545,16 @@ const resolveFunctions = {
         info.createdAt = moment().valueOf();
         info.createdById = user._id;
         return Courses.insert(info);
+      }
+      return ''
+    },
+    insertClass: (_,{userId,info}) => {
+      let user = Meteor.users.findOne({_id: userId});
+      if(user){
+        info = JSON.parse(info);
+        info.createdAt = moment().valueOf();
+        info.createdById = user._id;
+        return Classes.insert(info);
       }
       return ''
     }
