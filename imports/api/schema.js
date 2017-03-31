@@ -148,7 +148,10 @@ const schema = [`
     courses: [Course],
     classInfo(classId: String, userId: String, role: String): Class
     questionSetBankUser(userId: String!): [QuestionSet]
+    questionSetBankPublic: [QuestionSet]
     questionBank: [Question]
+    subjectByUser(token: String!): [Subject]
+    questionBySubject(token: String, subjectId: String!, type: String!): [Question]
   }
 
   type Mutation {
@@ -160,6 +163,7 @@ const schema = [`
     loginWithGoogle(info: String): String
     loginWithFacebook(info: String): String
     insertQuestionSet(userId: String!, questionSet: String!, questions: [String]!): String
+    insertQuestionFromBank(token: String!, questionSet: String!, questions: [String]!): String
     insertExamination(userId: String!, info: String!): String,
     insertCourse(userId: String!, info: String!): String
   }

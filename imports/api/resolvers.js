@@ -204,6 +204,10 @@ const resolveFunctions = {
       return QuestionSets.find({'createdById' : userId}).fetch();
     },
 
+    questionSetBankPublic: (root, { userId }) => {
+      return QuestionSets.find({isPublic: true}).fetch();
+    },
+
     questionBank: () => {
       return Questions.find({isPublic: true}).fetch();
     },
@@ -265,6 +269,24 @@ const resolveFunctions = {
         subjects.push(subject);
       })
       return subjects;
+    },
+    subjectByUser: (root, {token}) => {
+      var hashedToken = Accounts._hashLoginToken(token);
+      var user = Meteor.users.find({'services.resume.loginTokens': {$elemMatch: {hashedToken: hashedToken}}}).fetch()[0];
+      return Subjects.find({createrId: user._id}).fetch();
+    },
+    questionBySubject: (root, {token, subjectId, type}) => {
+      if(type === 'personal') {
+        var hashedToken = Accounts._hashLoginToken(token);
+        var user = Meteor.users.find({'services.resume.loginTokens': {$elemMatch: {hashedToken: hashedToken}}}).fetch()[0];
+        var questionSetIds = QuestionSets.find({subjectId}).map(item => item._id);
+        var questionIds = QuestionHaves.find({questionSetId: {$in: questionSetIds}}).map(item => item.questionId);
+        if(user) {
+          return Questions.find({_id: {$in: questionIds}}).fetch();
+        }
+      } else {
+          return Questions.find({isPublic: true, subjectId}).fetch();
+      }
     },
     userClass: (root, { userId }) => {
       return { userId: userId }
@@ -543,6 +565,35 @@ const resolveFunctions = {
         });
         return future.wait();
       }
+    },
+    insertQuestionFromBank: (_, {token, questionSet, questions}) => {
+      var hashedToken = Accounts._hashLoginToken(token);
+      var user = Meteor.users.find({'services.resume.loginTokens': {$elemMatch: {hashedToken: hashedToken}}}).fetch()[0];
+      if(user) {
+        let future = new Future();
+        questionSetId = Random.id(16);
+        questionSet = JSON.parse(questionSet);
+        questionSet['_id'] = questionSetId;
+        questionSet['createdAt'] = moment().valueOf();
+        questionSet['createdById'] = user._id,
+        QuestionSets.insert(questionSet, (err, _id) => {
+          if(err) {
+
+          } else {
+              future.return(_id)
+          }
+        });
+        __.forEach(questions, item => {
+          item = JSON.parse(item);
+          QuestionHaves.insert({
+            questionSetId,
+            questionId: item._id,
+            score: item.score
+          })
+        });
+        return future.wait();
+      }
+      return;
     },
     insertExamination: (_, {userId, info}) => {
       let user = Meteor.users.findOne({_id: userId});
