@@ -154,6 +154,7 @@ const schema = [`
     questionBank: [Question]
     subjectByUser(token: String!): [Subject]
     questionBySubject(token: String, subjectId: String!, type: String!): [Question]
+    getSubjectByUserId(userId: String): [Subject]
   }
 
   type Mutation {

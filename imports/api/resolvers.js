@@ -291,6 +291,9 @@ const resolveFunctions = {
     },
     coursesActive: (root) => {
       return Courses.find({_id:{$in: ClassSubjects.find({}).map((item) => item.courseId)}}).fetch();
+    },
+    getSubjectByUserId: (root,{userId}) => {
+      return Subjects.find({createrId:userId}).fetch();
     }
   },
 
