@@ -195,11 +195,6 @@ const resolveFunctions = {
       }
       return classItem;
     },
-
-    courses: (root) => {
-      return Courses.find({}).fetch();
-    },
-
     questionSetBankUser: (root, { userId }) => {
       return QuestionSets.find({'createdById' : userId}).fetch();
     },
@@ -292,20 +287,29 @@ const resolveFunctions = {
       return { userId: userId }
     },
     courses: (root) => {
-      return Courses.find({_id:ClassSubjects.find({}).map((item) => item.courseId)}).fetch();
+      return Courses.find({}).fetch();
+    },
+    coursesActive: (root) => {
+      return Courses.find({_id:{$in: ClassSubjects.find({}).map((item) => item.courseId)}}).fetch();
     }
   },
 
   Mutation: {
     logoutUser: (_, {userId, token})=>{
-        if(userId){
-            return Accounts.destroyToken(userId, Accounts._hashLoginToken(token));
-        } else {
-            let user = Meteor.users.findOne({'services.resume.loginTokens': {$elemMatch: {hashedToken: Accounts._hashLoginToken(token)}}});
-            if(user){
-                return Accounts.destroyToken(user._id, Accounts._hashLoginToken(token));
-            }
+      let future = new Future();
+      if(userId && token){
+        let user = Meteor.users.findOne({_id: userId});
+        if(user){
+          future.return(user._id);
         }
+        else {
+          future.return();
+        }
+      }
+      else {
+        future.return();
+      }
+      return future.wait();
     },
     addClass: (_, {userId, classItem, subject, course}) => {
       let classId = Random.id(16);
@@ -468,27 +472,17 @@ const resolveFunctions = {
         });
       }
       else {
-        // Meteor.users.update({googleId: info.googleId,{info}})
-        Meteor.users.remove({googleId: info.googleId},((error) => {
-          if(error){
-            console.log(error);
-            future.return();
-          }
-          else {
-            Meteor.users.insert(info, (err) => {
-              if(err) {
-                console.log("message error ", err);
-                future.return();
-              }
-              else {
-                 future.return(JSON.stringify({
-                  user: Meteor.users.findOne({googleId: info.googleId}),
-                  token: info.accessToken
-                }));
-              }
-            });
-          }
-        }));
+          Meteor.users.update({googleId: info.googleId},{$set:info},(error) => {
+            if(error){
+              future.return();
+            }
+            else {
+              future.return(JSON.stringify({
+                      user: Meteor.users.findOne({googleId: info.googleId}),
+                      token: info.accessToken
+                    }));
+            }
+          });
       }
       return future.wait();
     },
@@ -511,26 +505,17 @@ const resolveFunctions = {
         });
       }
       else {
-        Meteor.users.remove({userID: info.userID},((error) => {
+        Meteor.users.update({userID: info.userID},{$set:info},(error) => {
           if(error){
-            console.log(error);
             future.return();
           }
           else {
-            Meteor.users.insert(info, (err) => {
-              if(err) {
-                console.log("message error ", err);
-                future.return();
-              }
-              else {
-                 future.return(JSON.stringify({
-                  user: Meteor.users.findOne({userID: info.userID}),
-                  token: info.accessToken
-                }));
-              }
-            });
+            future.return(JSON.stringify({
+                   user: Meteor.users.findOne({userID: info.userID}),
+                   token: info.accessToken
+                 }));
           }
-        }))
+        });
       }
       return future.wait();
     },
@@ -611,6 +596,16 @@ const resolveFunctions = {
         info.createdAt = moment().valueOf();
         info.createdById = user._id;
         return Courses.insert(info);
+      }
+      return ''
+    },
+    insertClass: (_,{userId,info}) => {
+      let user = Meteor.users.findOne({_id: userId});
+      if(user){
+        info = JSON.parse(info);
+        info.createdAt = moment().valueOf();
+        info.createdById = user._id;
+        return Classes.insert(info);
       }
       return ''
     }
@@ -701,6 +696,9 @@ const resolveFunctions = {
   Course: {
     classes: ({_id}) => {
       return Classes.find({_id: ClassSubjects.find({courseId: _id}).map((item) => item._id)}).fetch();
+    },
+    classSubjects: ({_id}) => {
+      return ClassSubjects.find({courseId: _id}).fetch();
     }
   },
   QuestionSet: {

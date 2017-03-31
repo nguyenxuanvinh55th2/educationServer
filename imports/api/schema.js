@@ -34,11 +34,12 @@ const schema = [`
   }
 
   type Course {
-    _id: String,
-    name: String,
-    dateStart: Float,
+    _id: String
+    name: String
+    dateStart: Float
     dateEnd: Float
     classes: [Class]
+    classSubjects: [ClassSubject]
   }
 
   type File {
@@ -146,6 +147,7 @@ const schema = [`
     getClassInfo(classId: String, userId: String, role: String): Class
     subjects: [Subject],
     courses: [Course],
+    coursesActive: [Course],
     classInfo(classId: String, userId: String, role: String): Class
     questionSetBankUser(userId: String!): [QuestionSet]
     questionSetBankPublic: [QuestionSet]
@@ -166,6 +168,7 @@ const schema = [`
     insertQuestionFromBank(token: String!, questionSet: String!, questions: [String]!): String
     insertExamination(userId: String!, info: String!): String,
     insertCourse(userId: String!, info: String!): String
+    insertClass(userId: String!, info: String) : String
   }
 
   type Subscription {
