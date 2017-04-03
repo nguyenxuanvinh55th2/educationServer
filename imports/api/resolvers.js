@@ -606,11 +606,27 @@ const resolveFunctions = {
       let user = Meteor.users.findOne({_id: userId});
       if(user){
         info = JSON.parse(info);
-        info.createdAt = moment().valueOf();
-        info.createdById = user._id;
-        return Classes.insert(info);
+        info.class.createdAt = moment().valueOf();
+        info.class.createdById = user._id;
+        return Classes.insert(info.class,(error, result) => {
+          if(error){
+            throw error;
+          }
+          else if(result) {
+            if(info.userClasses){
+              //add notification
+            }
+          }
+        });
       }
       return ''
+    },
+    insertSubject: (_,{userId,info}) => {
+      let user = Meteor.users.findOne({_id: userId});
+      if(user){
+        info = JSON.parse(info);
+
+      }
     }
   },
 
