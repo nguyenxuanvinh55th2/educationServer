@@ -44,8 +44,8 @@ const getUserInfo = (userId) => {
   query = Meteor.users.findOne({_id: userId});
   var user = {
     _id: query._id,
-    name: query.profileObj ? query.profileObj.name : query.name,
-    image: query.profileObj ? query.profileObj.imageUrl : query.picture.data.url,
+    name: query.profileObj ? query.profileObj.name : query.name ? query.name : query.username,
+    image: query.profileObj ? query.profileObj.imageUrl : query.picture ? query.picture.data.url : '',
     email: query.profileObj ? query.profileObj.email : query.email,
     social: query.googleId ? 'https://plus.google.com/u/0/' + query.googleId + '/posts' : 'https://facebook.com/u/0/' + query.id,
     //online: query.status.online,
@@ -211,17 +211,27 @@ const resolveFunctions = {
     //--------------------------------------------------------------------------------------//
     userChat: (root, { userId }) => {
 
+      console.log("userId ", userId);
+
       //user list
-      let usersList = []
+      let usersList = [];
 
       let friendList = Meteor.users.findOne({_id: userId}) ? Meteor.users.findOne({_id: userId}).friendList : '';
+      console.log("friend");
+
 
       if(!friendList) {
         friendList = [];
       }
 
+      console.log("friendList ", friendList);
+
+
       //truy vấn trả về  thông tin cuser trong frinedList
       query = Meteor.users.find({ _id: { $in: friendList } }).fetch();
+
+      console.log("query chat ", query);
+
 
       query.forEach(item => {
         let id = item._id;
@@ -432,6 +442,24 @@ const resolveFunctions = {
       }
       return;
     },
+    insertChatData: (root, {token, info}) => {
+      var hashedToken = Accounts._hashLoginToken(token);
+      var user = Meteor.users.find({'services.resume.loginTokens': {$elemMatch: {hashedToken: hashedToken}}}).fetch()[0];
+      if(user) {
+        info = JSON.parse(info);
+        ChatDatas.insert(info);
+      }
+      return;
+    },
+    insertChatContent: (root, {token, info}) => {
+      var hashedToken = Accounts._hashLoginToken(token);
+      var user = Meteor.users.find({'services.resume.loginTokens': {$elemMatch: {hashedToken: hashedToken}}}).fetch()[0];
+      if(user) {
+        info = JSON.parse(info);
+        ChatContents.insert(info);
+      }
+      return;
+    },
     loginWithPassword: (_, {username, password})=>{
         let user = Meteor.users.findOne({username});
         if(user){
@@ -623,18 +651,24 @@ const resolveFunctions = {
     },
   },
 
+  Content: {
+    user(root) {
+      return getUserInfo(root.userId)
+    }
+  },
+
   UserChat: {
     content(root) {
       var content = [];
       if(root.contentId && root.contentId !== null) {
-        var query = ChatContent.find({chatId: root.contentId}).fetch();
+        var query = ChatContents.find({chatId: root.contentId}).fetch();
         query.forEach(item => {
           var cont = {
             index: item.index,
             userId: item.userId,
             message: item.message,
             read: item.read,
-            date: getTimeString(item.date)
+            date: item.date
           }
           content.push(cont);
         })

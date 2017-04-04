@@ -20,7 +20,7 @@ const schema = [`
   	user: User,
   	message: String,
   	read: Boolean,
-  	date: String
+  	date: Float
   }
 
   type ClassSubject {
@@ -169,6 +169,8 @@ const schema = [`
     insertExamination(userId: String!, info: String!): String,
     insertCourse(userId: String!, info: String!): String
     insertClass(userId: String!, info: String) : String
+    insertChatData(token: String!, info: String!) : String
+    insertChatContent(token: String!, info: String!) : String
   }
 
   type Subscription {
