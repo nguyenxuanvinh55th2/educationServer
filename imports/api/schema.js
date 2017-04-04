@@ -156,7 +156,6 @@ const schema = [`
     logoutUser(userId: String, token: String): String
     insertAcc: String
     addClass(userId: String!, classItem: String!, subject: String!, course: String!): String
-    insertStockModel(info: String): String
     loginWithPassword(username: String, password: String): String
     loginWithGoogle(info: String): String
     loginWithFacebook(info: String): String
