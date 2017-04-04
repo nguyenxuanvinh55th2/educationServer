@@ -199,6 +199,10 @@ const resolveFunctions = {
       return QuestionSets.find({'createdById' : userId}).fetch();
     },
 
+    questionSetBankPublic: (root, { userId }) => {
+      return QuestionSets.find({isPublic: true}).fetch();
+    },
+
     questionBank: () => {
       return Questions.find({isPublic: true}).fetch();
     },
@@ -261,11 +265,35 @@ const resolveFunctions = {
       })
       return subjects;
     },
+    subjectByUser: (root, {token}) => {
+      var hashedToken = Accounts._hashLoginToken(token);
+      var user = Meteor.users.find({'services.resume.loginTokens': {$elemMatch: {hashedToken: hashedToken}}}).fetch()[0];
+      return Subjects.find({createrId: user._id}).fetch();
+    },
+    questionBySubject: (root, {token, subjectId, type}) => {
+      if(type === 'personal') {
+        var hashedToken = Accounts._hashLoginToken(token);
+        var user = Meteor.users.find({'services.resume.loginTokens': {$elemMatch: {hashedToken: hashedToken}}}).fetch()[0];
+        var questionSetIds = QuestionSets.find({subjectId}).map(item => item._id);
+        var questionIds = QuestionHaves.find({questionSetId: {$in: questionSetIds}}).map(item => item.questionId);
+        if(user) {
+          return Questions.find({_id: {$in: questionIds}}).fetch();
+        }
+      } else {
+          return Questions.find({isPublic: true, subjectId}).fetch();
+      }
+    },
     userClass: (root, { userId }) => {
       return { userId: userId }
     },
     courses: (root) => {
+      return Courses.find({}).fetch();
+    },
+    coursesActive: (root) => {
       return Courses.find({_id:{$in: ClassSubjects.find({}).map((item) => item.courseId)}}).fetch();
+    },
+    getSubjectByUserId: (root,{userId}) => {
+      return Subjects.find({createrId:userId}).fetch();
     }
   },
 
@@ -526,6 +554,35 @@ const resolveFunctions = {
         return future.wait();
       }
     },
+    insertQuestionFromBank: (_, {token, questionSet, questions}) => {
+      var hashedToken = Accounts._hashLoginToken(token);
+      var user = Meteor.users.find({'services.resume.loginTokens': {$elemMatch: {hashedToken: hashedToken}}}).fetch()[0];
+      if(user) {
+        let future = new Future();
+        questionSetId = Random.id(16);
+        questionSet = JSON.parse(questionSet);
+        questionSet['_id'] = questionSetId;
+        questionSet['createdAt'] = moment().valueOf();
+        questionSet['createdById'] = user._id,
+        QuestionSets.insert(questionSet, (err, _id) => {
+          if(err) {
+
+          } else {
+              future.return(_id)
+          }
+        });
+        __.forEach(questions, item => {
+          item = JSON.parse(item);
+          QuestionHaves.insert({
+            questionSetId,
+            questionId: item._id,
+            score: item.score
+          })
+        });
+        return future.wait();
+      }
+      return;
+    },
     insertExamination: (_, {userId, info}) => {
       let user = Meteor.users.findOne({_id: userId});
       if(user) {
@@ -544,6 +601,32 @@ const resolveFunctions = {
         return Courses.insert(info);
       }
       return ''
+    },
+    insertClass: (_,{userId,info}) => {
+      let user = Meteor.users.findOne({_id: userId});
+      if(user){
+        info = JSON.parse(info);
+        info.class.createdAt = moment().valueOf();
+        info.class.createdById = user._id;
+        return Classes.insert(info.class,(error, result) => {
+          if(error){
+            throw error;
+          }
+          else if(result) {
+            if(info.userClasses){
+              //add notification
+            }
+          }
+        });
+      }
+      return ''
+    },
+    insertSubject: (_,{userId,info}) => {
+      let user = Meteor.users.findOne({_id: userId});
+      if(user){
+        info = JSON.parse(info);
+
+      }
     }
   },
 
