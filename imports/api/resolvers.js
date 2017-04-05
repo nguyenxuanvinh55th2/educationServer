@@ -294,6 +294,9 @@ const resolveFunctions = {
     },
     getSubjectByUserId: (root,{userId}) => {
       return Subjects.find({createrId:userId}).fetch();
+    },
+    getClassByUserId: (root,{userId}) => {
+      return Classes.find({createrId: userId}).fetch();
     }
   },
 
@@ -608,6 +611,7 @@ const resolveFunctions = {
         info = JSON.parse(info);
         info.class.createdAt = moment().valueOf();
         info.class.createdById = user._id;
+        info.class.createrId = user._id;
         return Classes.insert(info.class,(error, result) => {
           if(error){
             throw error;
