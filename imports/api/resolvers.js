@@ -211,27 +211,18 @@ const resolveFunctions = {
     //--------------------------------------------------------------------------------------//
     userChat: (root, { userId }) => {
 
-      console.log("userId ", userId);
-
       //user list
       let usersList = [];
 
       let friendList = Meteor.users.findOne({_id: userId}) ? Meteor.users.findOne({_id: userId}).friendList : '';
-      console.log("friend");
 
 
       if(!friendList) {
         friendList = [];
       }
 
-      console.log("friendList ", friendList);
-
-
       //truy vấn trả về  thông tin cuser trong frinedList
       query = Meteor.users.find({ _id: { $in: friendList } }).fetch();
-
-      console.log("query chat ", query);
-
 
       query.forEach(item => {
         let id = item._id;
