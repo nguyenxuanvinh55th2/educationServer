@@ -154,13 +154,13 @@ const schema = [`
     questionBank: [Question]
     subjectByUser(token: String!): [Subject]
     questionBySubject(token: String, subjectId: String!, type: String!): [Question]
+    getSubjectByUserId(userId: String): [Subject]
   }
 
   type Mutation {
     logoutUser(userId: String, token: String): String
     insertAcc: String
     addClass(userId: String!, classItem: String!, subject: String!, course: String!): String
-    insertStockModel(info: String): String
     loginWithPassword(username: String, password: String): String
     loginWithGoogle(info: String): String
     loginWithFacebook(info: String): String
@@ -171,6 +171,8 @@ const schema = [`
     insertClass(userId: String!, info: String) : String
     insertChatData(token: String!, info: String!) : String
     insertChatContent(token: String!, info: String!) : String
+    insertSubject(userId: String!, info: String): String
+    updateChatContent(token: String!, chatId: String!) : String
   }
 
   type Subscription {

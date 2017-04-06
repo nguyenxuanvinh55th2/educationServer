@@ -301,6 +301,9 @@ const resolveFunctions = {
     },
     coursesActive: (root) => {
       return Courses.find({_id:{$in: ClassSubjects.find({}).map((item) => item.courseId)}}).fetch();
+    },
+    getSubjectByUserId: (root,{userId}) => {
+      return Subjects.find({createrId:userId}).fetch();
     }
   },
 
@@ -443,8 +446,8 @@ const resolveFunctions = {
       return;
     },
     insertChatData: (root, {token, info}) => {
-      var hashedToken = Accounts._hashLoginToken(token);
-      var user = Meteor.users.find({'services.resume.loginTokens': {$elemMatch: {hashedToken: hashedToken}}}).fetch()[0];
+      //var hashedToken = Accounts._hashLoginToken(token);
+      var user = Meteor.users.find({accessToken: token}).fetch()[0];
       if(user) {
         info = JSON.parse(info);
         ChatDatas.insert(info);
@@ -452,13 +455,20 @@ const resolveFunctions = {
       return;
     },
     insertChatContent: (root, {token, info}) => {
-      var hashedToken = Accounts._hashLoginToken(token);
-      var user = Meteor.users.find({'services.resume.loginTokens': {$elemMatch: {hashedToken: hashedToken}}}).fetch()[0];
+      //var hashedToken = Accounts._hashLoginToken(token);
+      var user = Meteor.users.find({accessToken: token}).fetch()[0];
       if(user) {
         info = JSON.parse(info);
         ChatContents.insert(info);
       }
       return;
+    },
+    updateChatContent: (root, {token, chatId}) => {
+      ChatContents.update(
+        { chatId },
+        { $set: { read: true } },
+        { multi: true }
+      );
     },
     loginWithPassword: (_, {username, password})=>{
         let user = Meteor.users.findOne({username});
@@ -631,11 +641,27 @@ const resolveFunctions = {
       let user = Meteor.users.findOne({_id: userId});
       if(user){
         info = JSON.parse(info);
-        info.createdAt = moment().valueOf();
-        info.createdById = user._id;
-        return Classes.insert(info);
+        info.class.createdAt = moment().valueOf();
+        info.class.createdById = user._id;
+        return Classes.insert(info.class,(error, result) => {
+          if(error){
+            throw error;
+          }
+          else if(result) {
+            if(info.userClasses){
+              //add notification
+            }
+          }
+        });
       }
       return ''
+    },
+    insertSubject: (_,{userId,info}) => {
+      let user = Meteor.users.findOne({_id: userId});
+      if(user){
+        info = JSON.parse(info);
+
+      }
     }
   },
 
