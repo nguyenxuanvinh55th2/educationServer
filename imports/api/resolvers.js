@@ -722,6 +722,9 @@ const resolveFunctions = {
     activity(root) {
       return getActivityOfCourse(root._id);
     },
+    subject({subjectId}) {
+      return Subjects.findOne({_id: subjectId});
+    }
   },
 
   Content: {

@@ -25,7 +25,7 @@ const schema = [`
 
   type ClassSubject {
   	_id: String,
-  	subjectName: String,
+  	subject: Subject,
   	dateStart: String,
   	dateEnd: String,
   	isOpen: Boolean,
@@ -156,6 +156,7 @@ const schema = [`
     questionBySubject(token: String, subjectId: String!, type: String!): [Question]
     getSubjectByUserId(userId: String): [Subject]
     getClassByUserId(userId: String): [Class]
+    getSubjectByTeacher(userId): [ClassSubject]
   }
 
   type Mutation {
