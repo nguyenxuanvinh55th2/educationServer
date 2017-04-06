@@ -304,6 +304,9 @@ const resolveFunctions = {
     },
     getSubjectByUserId: (root,{userId}) => {
       return Subjects.find({createrId:userId}).fetch();
+    },
+    getClassByUserId: (root,{userId}) => {
+      return Classes.find({createrId: userId}).fetch();
     }
   },
 
@@ -643,6 +646,7 @@ const resolveFunctions = {
         info = JSON.parse(info);
         info.class.createdAt = moment().valueOf();
         info.class.createdById = user._id;
+        info.class.createrId = user._id;
         return Classes.insert(info.class,(error, result) => {
           if(error){
             throw error;
@@ -650,6 +654,11 @@ const resolveFunctions = {
           else if(result) {
             if(info.userClasses){
               //add notification
+              __.forEach(info.userClasses,(user,idx) => {
+                Notifications.insert({
+
+                })
+              });
             }
           }
         });
@@ -660,7 +669,45 @@ const resolveFunctions = {
       let user = Meteor.users.findOne({_id: userId});
       if(user){
         info = JSON.parse(info);
-
+        return Subjects.insert(info.subject,(error, result) =>{
+          if(error){
+            throw error;
+          }
+          else if (result) {
+            let subjectId = result._id;
+            if(info.joinToClass){
+              ClassSubjects.insert(info.classeSubject,(error,result) => {
+                if(error){
+                  throw error;
+                }
+                else if (result) {
+                  let classSubjectId = result._id;
+                  AccountingObjects.insert({
+                    objectId: result._id,
+                    isClassSubject: true
+                  },(error,result) => {
+                    if(error){
+                      throw error;
+                    }
+                    else if (result) {
+                      let accountingObjectId = result._id;
+                      Profiles.insert({
+                        name: 'manageer',
+                        roles: ['userCanManage', 'userCanView', 'userCanUploadLesson', 'userCanUploadAssignment', 'userCanUploadPoll', 'userCanuploadTest']
+                      },(error,result) => {
+                        Permissions.insert({
+                          userId: userId,
+                          profileId: result._id,
+                          accountingObjectId: accountingObjectId
+                        })
+                      });
+                    }
+                  })
+                }
+              })
+            }
+          }
+        })
       }
     }
   },
