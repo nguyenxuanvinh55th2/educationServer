@@ -156,7 +156,7 @@ const schema = [`
     questionBySubject(token: String, subjectId: String!, type: String!): [Question]
     getSubjectByUserId(userId: String): [Subject]
     getClassByUserId(userId: String): [Class]
-    getSubjectByTeacher(userId): [ClassSubject]
+    getSubjectByTeacher(userId: String): [ClassSubject]
   }
 
   type Mutation {

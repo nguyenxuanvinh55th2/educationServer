@@ -307,6 +307,9 @@ const resolveFunctions = {
     },
     getClassByUserId: (root,{userId}) => {
       return Classes.find({createrId: userId}).fetch();
+    },
+    getSubjectByTeacher: (root, {userId}) => {
+      let query = ClassSubjects.find({}).fetch();
     }
   },
 
