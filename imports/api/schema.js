@@ -61,6 +61,17 @@ const schema = [`
   	index: String
   }
 
+  type Notification {
+    _id: String,
+    user: User,
+    classInfo: Class,
+    type: String,
+    createdBy: User,
+    note: String,
+    read: Boolean,
+    createdAt: Float
+  }
+
   type Subject {
   	_id: String,
   	name: String,
@@ -156,6 +167,7 @@ const schema = [`
     questionBySubject(token: String, subjectId: String!, type: String!): [Question]
     getSubjectByUserId(userId: String): [Subject]
     getClassByUserId(userId: String): [Class]
+    notification(token: String!) : [Notification]
   }
 
   type Mutation {
@@ -173,7 +185,9 @@ const schema = [`
     insertChatData(token: String!, info: String!) : String
     insertChatContent(token: String!, info: String!) : String
     insertSubject(userId: String!, info: String): String
+    insertUserClass(token: String!, classId: String!): String
     updateChatContent(token: String!, chatId: String!) : String
+    deleteNotification(noteId: String!) : String
   }
 
   type Subscription {
