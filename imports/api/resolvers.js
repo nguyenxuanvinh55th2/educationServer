@@ -201,6 +201,21 @@ const resolveFunctions = {
       return ''
     },
 
+    classSubjectsByTeacher: (token) => {
+      let user = Meteor.users.findOne({accessToken: token});
+      if(user) {
+        let profileIds = Profiles.find({name: 'teacher'}).map(item => item._id);
+        let accIds = Permissions.find({
+          userId: user._id,
+          profileId: {$in: profileIds},
+          isClassSubject: true
+        }).map(item => item.accountingObjectId);
+        let classSubjectIds = AccountingObjects.find({_id: {$in: accIds}, isClassSubject: true}).map(item => item.objectId);
+        return ClassSubjects.find({_id: {$in: classSubjectIds}}).fetch();
+      }
+      return;
+    }
+
       //trả về thông báo của user tương ứng
     //------------------------------------------------------------------------------------//
     notification: (root, {token}) => {
@@ -749,12 +764,6 @@ const resolveFunctions = {
     }
   },
 
-  ClassSubject: {
-    activity(root) {
-      return getActivityOfCourse(root._id);
-    },
-  },
-
   Content: {
     user(root) {
       return getUserInfo(root.userId)
@@ -846,6 +855,23 @@ const resolveFunctions = {
       return getCourseByClass(root._id)
     }
   },
+
+  ClassSubject: {
+    theme: ({_id}) => {
+      let themeIds = Activities.find({classSubjectId: _id}).map(item => item.themeId);
+      return Themes.find({_id: {$in: themeIds}}).fetch();
+    }
+    subject: ({subjectId}) => {
+      return Subjects.findOne({_id: subjectId});
+    }
+  },
+
+  Theme: {
+    activity: ({_id}) => {
+      return Activities.find({themeId: _id}).map(item => item._id);
+    }
+  }
+
   Course: {
     classes: ({_id}) => {
       return Classes.find({_id: ClassSubjects.find({courseId: _id}).map((item) => item._id)}).fetch();
