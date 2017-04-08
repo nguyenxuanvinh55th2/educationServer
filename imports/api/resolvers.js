@@ -25,6 +25,19 @@ const joinUserToClass = (userId, classId) => {
   });
 }
 
+const sendNotification = (userId, createdById, note, type, classId) => {
+  note = {
+    userId,
+    classId,
+    type,
+    createdById,
+    note,
+    read: false,
+    createAt: moment().valueOf()
+  }
+  Notifications.insert(note);
+}
+
 //function trả về các hoạt động ứng với một khóa học
 getActivityOfCourse = (courseId) => {
   let result = [];
@@ -42,16 +55,19 @@ getActivityOfCourse = (courseId) => {
 //function trả về thông tin của một user theo userId
 const getUserInfo = (userId) => {
   query = Meteor.users.findOne({_id: userId});
-  var user = {
-    _id: query._id,
-    name: query.profileObj ? query.profileObj.name : query.name ? query.name : query.username,
-    image: query.profileObj ? query.profileObj.imageUrl : query.picture ? query.picture.data.url : '',
-    email: query.profileObj ? query.profileObj.email : query.email,
-    social: query.googleId ? 'https://plus.google.com/u/0/' + query.googleId + '/posts' : 'https://facebook.com/u/0/' + query.id,
-    //online: query.status.online,
-    //lastLogin: getLastLogin(query.status.lastLogin.date)
+  if (query) {
+    var user = {
+      _id: query._id,
+      name: query.profileObj ? query.profileObj.name : query.name ? query.name : query.username,
+      image: query.profileObj ? query.profileObj.imageUrl : query.picture ? query.picture.data.url : '',
+      email: query.profileObj ? query.profileObj.email : query.email,
+      social: query.googleId ? 'https://plus.google.com/u/0/' + query.googleId + '/posts' : 'https://facebook.com/u/0/' + query.id,
+      //online: query.status.online,
+      //lastLogin: getLastLogin(query.status.lastLogin.date)
+    }
+    return user;
   }
-  return user
+  return;
 }
 
 //function trả về danh sách lớp ứng với user tương ứng
@@ -184,6 +200,17 @@ const resolveFunctions = {
       }
       return ''
     },
+
+      //trả về thông báo của user tương ứng
+    //------------------------------------------------------------------------------------//
+    notification: (root, {token}) => {
+      let user = Meteor.users.findOne({accessToken: token});
+      if(user) {
+        return Notifications.find({userId: user._id}).fetch();
+      }
+      return [];
+    },
+
     classInfo: (root, {classId, userId, role}) => {
       classQuery = Classes.findOne({_id: classId});
       classItem = {
@@ -210,8 +237,6 @@ const resolveFunctions = {
       //trả  về danh sách user online và tin nhắn
     //--------------------------------------------------------------------------------------//
     userChat: (root, { userId }) => {
-
-
       //user list
       let usersList = [];
 
@@ -221,14 +246,8 @@ const resolveFunctions = {
       if(!friendList) {
         friendList = [];
       }
-
-
-
       //truy vấn trả về  thông tin cuser trong frinedList
       query = Meteor.users.find({ _id: { $in: friendList } }).fetch();
-
-
-
       query.forEach(item => {
         let id = item._id;
 
@@ -646,17 +665,14 @@ const resolveFunctions = {
         info.class.createdAt = moment().valueOf();
         info.class.createdById = user._id;
         info.class.createrId = user._id;
-        return Classes.insert(info.class,(error, result) => {
+        return Classes.insert(info.class, (error, result) => {
           if(error){
             throw error;
           }
           else if(result) {
             if(info.userClasses){
-              //add notification
               __.forEach(info.userClasses,(user,idx) => {
-                Notifications.insert({
-
-                })
+                sendNotification(user._id, userId, 'đã thêm bạn vào ', 'add-class-note', result);
               });
             }
           }
@@ -708,6 +724,22 @@ const resolveFunctions = {
           }
         })
       }
+    },
+    insertUserClass: (_, {token, classId}) => {
+      let user = Meteor.users.findOne({accessToken: token});
+      if(user) {
+        let userClass = {
+          userId: user._id,
+          classId,
+          createdAt: moment().valueOf(),
+          createdById: user._id
+        }
+        UserClasses.insert(userClass);
+      }
+    },
+    deleteNotification: (_, {noteId}) => {
+      Notifications.remove({_id: noteId});
+      return;
     }
   },
 
@@ -729,6 +761,21 @@ const resolveFunctions = {
   Content: {
     user(root) {
       return getUserInfo(root.userId)
+    }
+  },
+
+  Notification: {
+    user({userId}) {
+      return getUserInfo(userId);
+    },
+    createdBy({createdById}) {
+      return getUserInfo(createdById);
+    },
+    classInfo({classId}) {
+      if(classId) {
+        return Classes.findOne({_id: classId});
+      }
+      return
     }
   },
 
