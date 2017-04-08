@@ -167,11 +167,8 @@ const schema = [`
     questionBySubject(token: String, subjectId: String!, type: String!): [Question]
     getSubjectByUserId(userId: String): [Subject]
     getClassByUserId(userId: String): [Class]
-<<<<<<< HEAD
     getSubjectByTeacher(userId: String): [ClassSubject]
-=======
     notification(token: String!) : [Notification]
->>>>>>> d383e2225ad816864ce80687b2718053e57fcf0a
   }
 
   type Mutation {
