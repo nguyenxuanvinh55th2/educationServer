@@ -690,6 +690,9 @@ const resolveFunctions = {
                 sendNotification(user._id, userId, 'đã thêm bạn vào ', 'add-class-note', result);
               });
             }
+            if(info.userMails && info.userMails[0]){
+              //send mail
+            }
           }
         });
       }
