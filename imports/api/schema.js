@@ -30,7 +30,13 @@ const schema = [`
   	dateEnd: String,
   	isOpen: Boolean,
   	publicActivity: Boolean,
-  	activity: [Activity]
+  	theme: [Theme]
+  }
+
+  type Theme {
+    _id: String,
+    name: String,
+    activity: [String]
   }
 
   type Course {
@@ -149,10 +155,12 @@ const schema = [`
     teacher: User
     student: [User]
   }
+
   type Query {
     getInfoUser(token: String): String
     userChat(userId: String): [UserChat],
     userClass(userId: String): UserClass,
+    classSubjectsByTeacher(token: String!): [ClassSubject],
     users: [User],
     getBackgroundList: [Background],
     getClassInfo(classId: String, userId: String, role: String): Class
