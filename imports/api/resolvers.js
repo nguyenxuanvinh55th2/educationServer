@@ -213,8 +213,8 @@ const resolveFunctions = {
         let classSubjectIds = AccountingObjects.find({_id: {$in: accIds}, isClassSubject: true}).map(item => item.objectId);
         return ClassSubjects.find({_id: {$in: classSubjectIds}}).fetch();
       }
-      return;
-    }
+      return [];
+    },
 
       //trả về thông báo của user tương ứng
     //------------------------------------------------------------------------------------//
@@ -860,7 +860,7 @@ const resolveFunctions = {
     theme: ({_id}) => {
       let themeIds = Activities.find({classSubjectId: _id}).map(item => item.themeId);
       return Themes.find({_id: {$in: themeIds}}).fetch();
-    }
+    },
     subject: ({subjectId}) => {
       return Subjects.findOne({_id: subjectId});
     }
@@ -870,7 +870,7 @@ const resolveFunctions = {
     activity: ({_id}) => {
       return Activities.find({themeId: _id}).map(item => item._id);
     }
-  }
+  },
 
   Course: {
     classes: ({_id}) => {
