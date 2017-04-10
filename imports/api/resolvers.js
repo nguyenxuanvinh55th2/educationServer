@@ -59,11 +59,20 @@ const getUserInfo = (userId) => {
     var user = {
       _id: query._id,
       name: query.profileObj ? query.profileObj.name : query.name ? query.name : query.username,
-      image: query.profileObj ? query.profileObj.imageUrl : query.picture ? query.picture.data.url : '',
+      image: '',
       email: query.profileObj ? query.profileObj.email : query.email,
       social: query.googleId ? 'https://plus.google.com/u/0/' + query.googleId + '/posts' : 'https://facebook.com/u/0/' + query.id,
       //online: query.status.online,
       //lastLogin: getLastLogin(query.status.lastLogin.date)
+    }
+    if(query.profileObj && query.profileObj.imageUrl){
+      user.image = query.profileObj.imageUrl
+    }
+    else if (query.picture) {
+      user.image = query.picture.data.url
+    }
+    else if (query.profile && query.profile.imageId) {
+      user.image = Files.findOne({_id: imageId}).link();
     }
     return user;
   }
@@ -517,7 +526,11 @@ const resolveFunctions = {
             } else {
                 let stampedLoginToken = Accounts._generateStampedLoginToken();
                 Accounts._insertLoginToken(user._id, stampedLoginToken);
-                Meteor.users.update({_id: user._id},{$set:{accessToken: stampedLoginToken.token}})
+                Meteor.users.update({_id: user._id},{$set:{accessToken: stampedLoginToken.token}});
+                user.image = '';
+                if (user.profile && user.profile.imageId) {
+                  user.image = Files.findOne({_id: imageId}).link();
+                }
                 return JSON.stringify({
                   user: user,
                   token: stampedLoginToken.token
