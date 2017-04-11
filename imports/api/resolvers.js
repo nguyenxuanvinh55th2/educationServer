@@ -289,13 +289,7 @@ const resolveFunctions = {
       //duyệt qua các user trong danh sách
     },
     users: (root) => {
-      var result = [];
-      query = Meteor.users.find({_id: {$ne: '0'}}).fetch();
-      query.forEach(item => {
-        var user = getUserInfo(item._id);
-        result.push(user);
-      })
-      return result;
+      return Meteor.users.find({_id: {$ne: '0'}}).fetch();
     },
     getBackgroundList: (root) => {
       return BackgroundLists.find({}).fetch();
@@ -349,6 +343,9 @@ const resolveFunctions = {
     },
     getSubjectByTeacher: (root, {userId}) => {
       let query = ClassSubjects.find({}).fetch();
+    },
+    getFriendList: (root, {userId}) => {
+      return ;
     }
   },
 
@@ -791,16 +788,16 @@ const resolveFunctions = {
 
   Content: {
     user(root) {
-      return getUserInfo(root.userId)
+      return Meteor.users.findOne({_id: root.userId});
     }
   },
 
   Notification: {
     user({userId}) {
-      return getUserInfo(userId);
+      return Meteor.users.findOne({_id: userId});
     },
     createdBy({createdById}) {
-      return getUserInfo(createdById);
+      return Meteor.users.findOne({_id: createdById});
     },
     classInfo({classId}) {
       if(classId) {
@@ -829,13 +826,13 @@ const resolveFunctions = {
       return content;
     },
     user(root) {
-      return getUserInfo(root._id)
+      return Meteor.users.findOne({_id: root._id});
     }
   },
 
   Subject: {
     owner(root) {
-      return getUserInfo(root.ownerId)
+      return Meteor.users.findOne({_id: root.ownerId});
     },
     classSubjects(root) {
       return getPublicCourseOfSubject(root._id)
@@ -844,7 +841,7 @@ const resolveFunctions = {
 
   Topic: {
     owner(root) {
-      return getUserInfo(root.ownerId)
+      return Meteor.users.findOne({_id: ownerId});
     },
     files(root) {
       return getFileList(root._id)
@@ -868,7 +865,7 @@ const resolveFunctions = {
 
   Class: {
     currentUser(root) {
-      return getUserInfo(root.currentUserId);
+      return Meteor.users.findOne({_id: root.currentUserId});
     },
     teacher(root) {
       return getUserByClass(root._id, 'teacher');
@@ -909,6 +906,29 @@ const resolveFunctions = {
     questions:  ({_id}) => {
       let questionHaves = QuestionHaves.find({questionSetId: _id}).map(item => item.questionId);
       return Questions.find({_id: {$in: questionHaves}}).fetch();
+    }
+  },
+  User :  {
+    name: (root) => {
+      return root.profileObj ? root.profileObj.name : root.name ? root.name : root.username ;
+    },
+    image: (root) => {
+      if(root.profileObj && root.profileObj.imageUrl){
+      return root.profileObj.imageUrl
+      }
+      else if (root.picture) {
+      return root.picture.data.url
+      }
+      else if (root.profile && root.profile.imageId) {
+        return Files.findOne({_id: imageId}).link();
+      }
+      return '';
+    },
+    email: (root) => {
+      return root.profileObj ? root.profileObj.email : root.email;
+    },
+    social: (root) => {
+      return root.googleId ? 'https://plus.google.com/u/0/' + root.googleId + '/posts' : 'https://facebook.com/u/0/' + root.id;
     }
   },
   Subscription: {

@@ -177,6 +177,7 @@ const schema = [`
     getClassByUserId(userId: String): [Class]
     getSubjectByTeacher(userId: String): [ClassSubject]
     notification(token: String!) : [Notification]
+    getFriendList (userId: String): [User]
   }
 
   type Mutation {
