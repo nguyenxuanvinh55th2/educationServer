@@ -59,11 +59,20 @@ const getUserInfo = (userId) => {
     var user = {
       _id: query._id,
       name: query.profileObj ? query.profileObj.name : query.name ? query.name : query.username,
-      image: query.profileObj ? query.profileObj.imageUrl : query.picture ? query.picture.data.url : '',
+      image: '',
       email: query.profileObj ? query.profileObj.email : query.email,
       social: query.googleId ? 'https://plus.google.com/u/0/' + query.googleId + '/posts' : 'https://facebook.com/u/0/' + query.id,
       //online: query.status.online,
       //lastLogin: getLastLogin(query.status.lastLogin.date)
+    }
+    if(query.profileObj && query.profileObj.imageUrl){
+      user.image = query.profileObj.imageUrl
+    }
+    else if (query.picture) {
+      user.image = query.picture.data.url
+    }
+    else if (query.profile && query.profile.imageId) {
+      user.image = Files.findOne({_id: imageId}).link();
     }
     return user;
   }
@@ -252,7 +261,6 @@ const resolveFunctions = {
       //trả  về danh sách user online và tin nhắn
     //--------------------------------------------------------------------------------------//
     userChat: (root, { userId }) => {
-
       //user list
       let usersList = [];
 
@@ -262,10 +270,8 @@ const resolveFunctions = {
       if(!friendList) {
         friendList = [];
       }
-
       //truy vấn trả về  thông tin cuser trong frinedList
       query = Meteor.users.find({ _id: { $in: friendList } }).fetch();
-
       query.forEach(item => {
         let id = item._id;
 
@@ -283,13 +289,7 @@ const resolveFunctions = {
       //duyệt qua các user trong danh sách
     },
     users: (root) => {
-      var result = [];
-      query = Meteor.users.find({_id: {$ne: '0'}}).fetch();
-      query.forEach(item => {
-        var user = getUserInfo(item._id);
-        result.push(user);
-      })
-      return result;
+      return Meteor.users.find({_id: {$ne: '0'}}).fetch();
     },
     getBackgroundList: (root) => {
       return BackgroundLists.find({}).fetch();
@@ -340,6 +340,12 @@ const resolveFunctions = {
     },
     getClassByUserId: (root,{userId}) => {
       return Classes.find({createrId: userId}).fetch();
+    },
+    getSubjectByTeacher: (root, {userId}) => {
+      let query = ClassSubjects.find({}).fetch();
+    },
+    getFriendList: (root, {userId}) => {
+      return ;
     }
   },
 
@@ -517,7 +523,11 @@ const resolveFunctions = {
             } else {
                 let stampedLoginToken = Accounts._generateStampedLoginToken();
                 Accounts._insertLoginToken(user._id, stampedLoginToken);
-                Meteor.users.update({_id: user._id},{$set:{accessToken: stampedLoginToken.token}})
+                Meteor.users.update({_id: user._id},{$set:{accessToken: stampedLoginToken.token}});
+                user.image = '';
+                if (user.profile && user.profile.imageId) {
+                  user.image = Files.findOne({_id: imageId}).link();
+                }
                 return JSON.stringify({
                   user: user,
                   token: stampedLoginToken.token
@@ -690,6 +700,9 @@ const resolveFunctions = {
                 sendNotification(user._id, userId, 'đã thêm bạn vào ', 'add-class-note', result);
               });
             }
+            if(info.userMails && info.userMails[0]){
+              //send mail
+            }
           }
         });
       }
@@ -764,18 +777,27 @@ const resolveFunctions = {
     }
   },
 
+  ClassSubject: {
+    activity(root) {
+      return getActivityOfCourse(root._id);
+    },
+    subject({subjectId}) {
+      return Subjects.findOne({_id: subjectId});
+    }
+  },
+
   Content: {
     user(root) {
-      return getUserInfo(root.userId)
+      return Meteor.users.findOne({_id: root.userId});
     }
   },
 
   Notification: {
     user({userId}) {
-      return getUserInfo(userId);
+      return Meteor.users.findOne({_id: userId});
     },
     createdBy({createdById}) {
-      return getUserInfo(createdById);
+      return Meteor.users.findOne({_id: createdById});
     },
     classInfo({classId}) {
       if(classId) {
@@ -804,13 +826,13 @@ const resolveFunctions = {
       return content;
     },
     user(root) {
-      return getUserInfo(root._id)
+      return Meteor.users.findOne({_id: root._id});
     }
   },
 
   Subject: {
     owner(root) {
-      return getUserInfo(root.ownerId)
+      return Meteor.users.findOne({_id: root.ownerId});
     },
     classSubjects(root) {
       return getPublicCourseOfSubject(root._id)
@@ -819,7 +841,7 @@ const resolveFunctions = {
 
   Topic: {
     owner(root) {
-      return getUserInfo(root.ownerId)
+      return Meteor.users.findOne({_id: ownerId});
     },
     files(root) {
       return getFileList(root._id)
@@ -843,7 +865,7 @@ const resolveFunctions = {
 
   Class: {
     currentUser(root) {
-      return getUserInfo(root.currentUserId);
+      return Meteor.users.findOne({_id: root.currentUserId});
     },
     teacher(root) {
       return getUserByClass(root._id, 'teacher');
@@ -884,6 +906,29 @@ const resolveFunctions = {
     questions:  ({_id}) => {
       let questionHaves = QuestionHaves.find({questionSetId: _id}).map(item => item.questionId);
       return Questions.find({_id: {$in: questionHaves}}).fetch();
+    }
+  },
+  User :  {
+    name: (root) => {
+      return root.profileObj ? root.profileObj.name : root.name ? root.name : root.username ;
+    },
+    image: (root) => {
+      if(root.profileObj && root.profileObj.imageUrl){
+      return root.profileObj.imageUrl
+      }
+      else if (root.picture) {
+      return root.picture.data.url
+      }
+      else if (root.profile && root.profile.imageId) {
+        return Files.findOne({_id: imageId}).link();
+      }
+      return '';
+    },
+    email: (root) => {
+      return root.profileObj ? root.profileObj.email : root.email;
+    },
+    social: (root) => {
+      return root.googleId ? 'https://plus.google.com/u/0/' + root.googleId + '/posts' : 'https://facebook.com/u/0/' + root.id;
     }
   },
   Subscription: {
