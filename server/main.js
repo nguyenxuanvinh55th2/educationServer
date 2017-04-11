@@ -8,6 +8,13 @@ import { SubscriptionServer } from 'subscriptions-transport-ws';
 
 import { subscriptionManager } from '../imports/api/subscription';
 import schema from '../imports/api/schema';
+import { Questions } from '../collections/question';
+
+if(Meteor.isServer){
+    Meteor.publish('questions', function(){
+      return Questions.find({});//note
+  })
+}
 
 const GRAPHQL_PORT = 8080;
 const WS_PORT = 8090;
