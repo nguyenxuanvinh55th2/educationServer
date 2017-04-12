@@ -730,7 +730,8 @@ const resolveFunctions = {
           }
           else if (result) {
             let subjectId = result._id;
-            if(info.joinToClass){
+            if(info.joinToClass && info.classId && info.classeSubject.courseId){
+              info.classeSubject.subjectId = subjectId;
               ClassSubjects.insert(info.classeSubject,(error,result) => {
                 if(error){
                   throw error;
@@ -738,7 +739,7 @@ const resolveFunctions = {
                 else if (result) {
                   let classSubjectId = result._id;
                   AccountingObjects.insert({
-                    objectId: result._id,
+                    objectId: classSubjectId,
                     isClassSubject: true
                   },(error,result) => {
                     if(error){
@@ -750,17 +751,24 @@ const resolveFunctions = {
                         name: 'manageer',
                         roles: ['userCanManage', 'userCanView', 'userCanUploadLesson', 'userCanUploadAssignment', 'userCanUploadPoll', 'userCanuploadTest']
                       },(error,result) => {
-                        Permissions.insert({
-                          userId: userId,
-                          profileId: result._id,
-                          accountingObjectId: accountingObjectId
-                        })
+                        if(error){
+                          throw error;
+                        }
+                        else if (result) {
+                          let profileId = result._id;
+                          Permissions.insert({
+                            userId: userId,
+                            profileId: profileId,
+                            accountingObjectId: accountingObjectId
+                          })
+                        }
                       });
                     }
                   })
                 }
               })
             }
+            // send Notifications and send mails to invite user
           }
         })
       }
