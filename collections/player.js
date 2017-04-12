@@ -1,5 +1,7 @@
-Questions = new Mongo.Collection('questions');
-Questions.allow({
+import { Mongo } from 'meteor/mongo';
+
+export const Players = new Mongo.Collection('players');
+Players.allow({
   insert: function () {
       // the user must be logged in, and the document must be owned by the user
       return true;

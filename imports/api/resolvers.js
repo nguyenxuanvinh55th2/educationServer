@@ -2,6 +2,9 @@ import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
 import moment from 'moment';
 
+import { Players } from '../../collections/player'
+import { UserExams } from '../../collections/userExam'
+
 Future = Npm.require('fibers/future');
 import CryptoJS from "crypto-js";
 
@@ -667,11 +670,20 @@ const resolveFunctions = {
     insertExamination: (_, {userId, info}) => {
       let user = Meteor.users.findOne({_id: userId});
       if(user) {
-           info = JSON.parse(info);
-           info['createdAt'] = moment().valueOf();
-           item['createdById'] = user._id;
+        let future = new Future();
+        info = JSON.parse(info);
+        info['createdAt'] = moment().valueOf();
+        info['createdById'] = user._id;
+        Examinations.insert(info, (err, id) => {
+          if(err) {
+            console.log('insert error');
+          } else {
+            future.return(id);
+          }
+        });
+        return future.wait();
       }
-      return
+      return;
     },
     insertCourse: (_,{userId,info}) => {
       let user = Meteor.users.findOne({_id: userId});
@@ -764,6 +776,28 @@ const resolveFunctions = {
         }
         UserClasses.insert(userClass);
       }
+    },
+    insertUserToExam: (_, {token, examCode}) => {
+      let user = Meteor.users.findOne({accessToken: token});
+      if(user) {
+        let examination = Examinations.findOne({code: examCode});
+        if(!examination) {
+          return 'notFound';
+        }
+        let playerId = Random.id(16);
+        Players.insert({
+          _id: playerId,
+          userId: user._id,
+          isUser: true
+        });
+        UserExams.insert({
+          examId: examination._id,
+          playerId,
+          result: [],
+          correctCount: 0
+        })
+      }
+      return;
     },
     deleteNotification: (_, {noteId}) => {
       Notifications.remove({_id: noteId});

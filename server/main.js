@@ -8,12 +8,27 @@ import { SubscriptionServer } from 'subscriptions-transport-ws';
 
 import { subscriptionManager } from '../imports/api/subscription';
 import schema from '../imports/api/schema';
-import { Questions } from '../collections/question';
+import { Players } from '../collections/player';
+import { GroupPlayers } from '../collections/groupPlayer';
+import { PersonalPlayers } from '../collections/personalPlayer';
+import { UserExams } from '../collections/userExam';
 
 if(Meteor.isServer){
-    Meteor.publish('questions', function(){
-      return Questions.find({});//note
-  })
+  Meteor.publish('userExams', function(){
+    return UserExams.find({});//note
+  });
+  Meteor.publish('players', function(){
+    return Players.find({});//note
+  });
+  Meteor.publish('groupPlayers', function(){
+    return GroupPlayers.find({});//note
+  });
+  Meteor.publish('personalPlayers', function(){
+    return PersonalPlayers.find({});//note
+  });
+  Meteor.publish('users', function(){
+    return Meteor.users.find({});//note
+  });
 }
 
 const GRAPHQL_PORT = 8080;

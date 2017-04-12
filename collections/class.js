@@ -10,4 +10,3 @@ Classes.allow({
       return true;
   }
 });
-z
