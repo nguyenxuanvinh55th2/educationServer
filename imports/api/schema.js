@@ -24,12 +24,13 @@ const schema = [`
   }
 
   type ClassSubject {
-  	_id: String,
-  	subject: Subject,
-  	dateStart: String,
-  	dateEnd: String,
-  	isOpen: Boolean,
-  	publicActivity: Boolean,
+  	_id: String
+    name: String
+  	subject: Subject
+  	dateStart: String
+  	dateEnd: String
+  	isOpen: Boolean
+  	publicActivity: Boolean
   	theme: [Theme]
   }
 

@@ -204,7 +204,21 @@ const resolveFunctions = {
       if(token){
         let existsUser = Meteor.users.findOne({accessToken: token});
         if(existsUser){
-          return JSON.stringify(existsUser);
+          if(existsUser.profileObj && existsUser.profileObj.imageUrl){
+            existsUser.image =  existsUser.profileObj.imageUrl
+          }
+          else if (existsUser.picture) {
+            existsUser.image = existsUser.picture.data.url
+          }
+          else if (existsUser.profile && existsUser.profile.imageId) {
+            existsUser.image = Files.findOne({_id: existsUser.profile.imageId}).link();
+          }
+          return JSON.stringify({
+            _id: existsUser._id,
+            image : existsUser.image ? existsUser.image : '',
+            name: existsUser.profileObj ? existsUser.profileObj.name : existsUser.name ? existsUser.name : existsUser.username,
+            email: existsUser.profileObj ? existsUser.profileObj.email : existsUser.email ? existsUser.email : existsUser.emails[0] ? existsUser.emails[0].address : ''
+          });
         }
       }
       return ''
@@ -526,10 +540,15 @@ const resolveFunctions = {
                 Meteor.users.update({_id: user._id},{$set:{accessToken: stampedLoginToken.token}});
                 user.image = '';
                 if (user.profile && user.profile.imageId) {
-                  user.image = Files.findOne({_id: imageId}).link();
+                  user.image = Files.findOne({_id: user.profile.imageId}).link();
                 }
                 return JSON.stringify({
-                  user: user,
+                  user: {
+                    _id: user._id,
+                    name: user.username,
+                    email: user.emails[0] ? user.emails[0].address : '',
+                    image: user.image
+                  },
                   token: stampedLoginToken.token
                 });
             }
@@ -718,11 +737,10 @@ const resolveFunctions = {
           }
           else if (result) {
             let subjectId = result;
-            console.log(info);
-            if(info.joinCourse && info.classId && info.classeSubject.courseId){
-              info.classeSubject.subjectId = subjectId;
-              info.classeSubject.classId = info.classId;
-              ClassSubjects.insert(info.classeSubject,(error,result) => {
+            if(info.joinCourse && info.classId && info.classSubject.courseId){
+              info.classSubject.subjectId = subjectId;
+              info.classSubject.classId = info.classId;
+              ClassSubjects.insert(info.classSubject,(error,result) => {
                 if(error){
                   throw error;
                 }
@@ -754,10 +772,8 @@ const resolveFunctions = {
                         }
                       });
                       if(info.themes){
-                        console.log("vo theme");
                         __.forEach(info.themes,(theme) => {
                           if(!theme._id){
-                            console.log("insert themes");
                             Themes.insert(theme,(error, result) => {
                               if(error){
                                 throw error;
@@ -968,7 +984,7 @@ const resolveFunctions = {
       return '';
     },
     email: (root) => {
-      return root.profileObj ? root.profileObj.email : root.email;
+      return root.profileObj ? root.profileObj.email : root.email ? root.email : root.emails[0] ? root.emails[0].address : '';
     },
     social: (root) => {
       return root.googleId ? 'https://plus.google.com/u/0/' + root.googleId + '/posts' : 'https://facebook.com/u/0/' + root.id;
