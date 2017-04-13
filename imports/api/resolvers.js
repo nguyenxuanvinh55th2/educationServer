@@ -717,15 +717,17 @@ const resolveFunctions = {
             throw error;
           }
           else if (result) {
-            let subjectId = result._id;
-            if(info.joinToClass && info.classId && info.classeSubject.courseId){
+            let subjectId = result;
+            console.log(info);
+            if(info.joinCourse && info.classId && info.classeSubject.courseId){
               info.classeSubject.subjectId = subjectId;
+              info.classeSubject.classId = info.classId;
               ClassSubjects.insert(info.classeSubject,(error,result) => {
                 if(error){
                   throw error;
                 }
                 else if (result) {
-                  let classSubjectId = result._id;
+                  let classSubjectId = result;
                   AccountingObjects.insert({
                     objectId: classSubjectId,
                     isClassSubject: true
@@ -734,7 +736,7 @@ const resolveFunctions = {
                       throw error;
                     }
                     else if (result) {
-                      let accountingObjectId = result._id;
+                      let accountingObjectId = result;
                       Profiles.insert({
                         name: 'manageer',
                         roles: ['userCanManage', 'userCanView', 'userCanUploadLesson', 'userCanUploadAssignment', 'userCanUploadPoll', 'userCanuploadTest']
@@ -743,7 +745,7 @@ const resolveFunctions = {
                           throw error;
                         }
                         else if (result) {
-                          let profileId = result._id;
+                          let profileId = result;
                           Permissions.insert({
                             userId: userId,
                             profileId: profileId,
@@ -751,12 +753,45 @@ const resolveFunctions = {
                           })
                         }
                       });
+                      if(info.themes){
+                        console.log("vo theme");
+                        __.forEach(info.themes,(theme) => {
+                          if(!theme._id){
+                            console.log("insert themes");
+                            Themes.insert(theme,(error, result) => {
+                              if(error){
+                                throw error;
+                              }
+                              else {
+                                let themeId = result;
+                                Activities.insert({
+                                  themeId: themeId,
+                                  topicId: '',
+                                  classSubjectId: classSubjectId
+                                });
+                              }
+                            });
+                          }
+                          else {
+                            //update activity for user
+                          }
+                        });
+                      }
                     }
                   })
                 }
               })
             }
-            // send Notifications and send mails to invite user
+            if(info.userSubjects){
+              __.forEach(info.userSubjects,(userInfo,idx) => {
+                //send Notifications
+              });
+            }
+            if(info.userMails){
+              __.forEach(info.userMails,(mail,idx) => {
+                //send mail
+              });
+            }
           }
         })
       }
