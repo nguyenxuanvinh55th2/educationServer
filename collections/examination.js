@@ -1,4 +1,6 @@
-Examinations = new Mongo.Collection('examinations');
+import { Mongo } from 'meteor/mongo';
+
+export const Examinations = new Mongo.Collection('examinations');
 Examinations.allow({
   insert: function () {
       // the user must be logged in, and the document must be owned by the user

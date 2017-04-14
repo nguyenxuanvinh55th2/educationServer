@@ -202,6 +202,7 @@ const schema = [`
     insertUserClass(token: String!, classId: String!): String
     updateChatContent(token: String!, chatId: String!) : String
     deleteNotification(noteId: String!) : String
+    insertUserToExam(token: String!, examCode: String!, link: String!) : String
   }
 
   type Subscription {

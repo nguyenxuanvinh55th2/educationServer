@@ -9,12 +9,13 @@ Meteor.subscribe("questions");
 
 Template.hello.onCreated(function helloOnCreated() {
   // counter starts at 0
-  console.log('question ', Questions.find({}).fetch());
+  //console.log('question ', Questions.find({}).fetch());
   this.counter = new ReactiveVar(0);
 });
 
 Template.hello.helpers({
   counter() {
+    console.log('Meteor, ', Meteor);
     return Template.instance().counter.get();
   },
 });

@@ -2,6 +2,10 @@ import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
 import moment from 'moment';
 
+import { Players } from '../../collections/player'
+import { UserExams } from '../../collections/userExam'
+import { Examinations } from '../../collections/examination'
+
 Future = Npm.require('fibers/future');
 import CryptoJS from "crypto-js";
 
@@ -686,11 +690,21 @@ const resolveFunctions = {
     insertExamination: (_, {userId, info}) => {
       let user = Meteor.users.findOne({_id: userId});
       if(user) {
-           info = JSON.parse(info);
-           info['createdAt'] = moment().valueOf();
-           item['createdById'] = user._id;
+        let future = new Future();
+        info = JSON.parse(info);
+        info['createdAt'] = moment().valueOf();
+        info['createdById'] = user._id;
+        info['status'] = 0;
+        Examinations.insert(info, (err, id) => {
+          if(err) {
+            console.log('insert error');
+          } else {
+            future.return(id);
+          }
+        });
+        return future.wait();
       }
-      return
+      return;
     },
     insertCourse: (_,{userId,info}) => {
       let user = Meteor.users.findOne({_id: userId});
@@ -823,6 +837,37 @@ const resolveFunctions = {
         }
         UserClasses.insert(userClass);
       }
+    },
+    insertUserToExam: (_, {token, examCode, link}) => {
+      let user = Meteor.users.findOne({accessToken: token});
+      if(user) {
+        let examination = Examinations.findOne({code: examCode});
+        if(!examination) {
+          return 'notFound';
+        }
+        if(examination.status === 0 || examination.status === 100) {
+          return 'canNotJoin';
+        }
+        let playerId = Random.id(16);
+        Players.insert({
+          _id: playerId,
+          userId: user._id,
+          isUser: true
+        });
+        UserExams.insert({
+          examId: examination._id,
+          playerId,
+          result: [],
+          correctCount: 0
+        });
+        Meteor.users.update({_id: user._id}, {$set: {
+          checkOutImage: [{
+            link,
+            time: moment().valueOf()
+          }]
+        }});
+      }
+      return;
     },
     deleteNotification: (_, {noteId}) => {
       Notifications.remove({_id: noteId});
