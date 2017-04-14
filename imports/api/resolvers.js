@@ -228,7 +228,7 @@ const resolveFunctions = {
       return ''
     },
 
-    classSubjectsByTeacher: (token) => {
+    classSubjectsByTeacher: (root,{token}) => {
       let user = Meteor.users.findOne({accessToken: token});
       if(user) {
         let profileIds = Profiles.find({name: 'teacher'}).map(item => item._id);
@@ -770,7 +770,7 @@ const resolveFunctions = {
                     else if (result) {
                       let accountingObjectId = result;
                       Profiles.insert({
-                        name: 'manageer',
+                        name: 'teacher',
                         roles: ['userCanManage', 'userCanView', 'userCanUploadLesson', 'userCanUploadAssignment', 'userCanUploadPoll', 'userCanuploadTest']
                       },(error,result) => {
                         if(error){
@@ -781,7 +781,8 @@ const resolveFunctions = {
                           Permissions.insert({
                             userId: userId,
                             profileId: profileId,
-                            accountingObjectId: accountingObjectId
+                            accountingObjectId: accountingObjectId,
+                            isClassSubject: true
                           })
                         }
                       });
