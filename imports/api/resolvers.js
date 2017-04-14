@@ -4,6 +4,7 @@ import moment from 'moment';
 
 import { Players } from '../../collections/player'
 import { UserExams } from '../../collections/userExam'
+import { Examinations } from '../../collections/examination'
 
 Future = Npm.require('fibers/future');
 import CryptoJS from "crypto-js";
@@ -674,6 +675,7 @@ const resolveFunctions = {
         info = JSON.parse(info);
         info['createdAt'] = moment().valueOf();
         info['createdById'] = user._id;
+        info['status'] = 0;
         Examinations.insert(info, (err, id) => {
           if(err) {
             console.log('insert error');
@@ -785,12 +787,15 @@ const resolveFunctions = {
         UserClasses.insert(userClass);
       }
     },
-    insertUserToExam: (_, {token, examCode}) => {
+    insertUserToExam: (_, {token, examCode, link}) => {
       let user = Meteor.users.findOne({accessToken: token});
       if(user) {
         let examination = Examinations.findOne({code: examCode});
         if(!examination) {
           return 'notFound';
+        }
+        if(examination.status === 0 || examination.status === 100) {
+          return 'canNotJoin';
         }
         let playerId = Random.id(16);
         Players.insert({
@@ -803,7 +808,13 @@ const resolveFunctions = {
           playerId,
           result: [],
           correctCount: 0
-        })
+        });
+        Meteor.users.update({_id: user._id}, {$set: {
+          checkOutImage: [{
+            link,
+            time: moment().valueOf()
+          }]
+        }});
       }
       return;
     },

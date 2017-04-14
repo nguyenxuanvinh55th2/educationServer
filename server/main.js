@@ -12,10 +12,14 @@ import { Players } from '../collections/player';
 import { GroupPlayers } from '../collections/groupPlayer';
 import { PersonalPlayers } from '../collections/personalPlayer';
 import { UserExams } from '../collections/userExam';
+import { Examinations } from '../collections/examination';
 
 if(Meteor.isServer){
   Meteor.publish('userExams', function(){
     return UserExams.find({});//note
+  });
+  Meteor.publish('examinations', function(){
+    return Examinations.find({});//note
   });
   Meteor.publish('players', function(){
     return Players.find({});//note
@@ -114,6 +118,13 @@ new SubscriptionServer(
    server: websocketServer
   }
 );
+
+Meteor.methods({
+  getUserExam: (userIds) => {
+    return Meteor.users.find({_id: {$in: userIds}}).fetch();
+  }
+})
+
 // Meteor.methods({
 //   loginGgUser: (user) => {
 //     let checkId = Meteor.users.find({googleId: user.googleId}).count();
