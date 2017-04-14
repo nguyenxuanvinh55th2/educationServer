@@ -26,7 +26,9 @@ const schema = [`
   type ClassSubject {
   	_id: String
     name: String
+    teacher: User
   	subject: Subject
+    class: Class
   	dateStart: String
   	dateEnd: String
   	isOpen: Boolean
@@ -80,10 +82,11 @@ const schema = [`
   }
 
   type Subject {
-  	_id: String,
-  	name: String,
-  	ownerId: String,
-  	owner: User,
+  	_id: String
+  	name: String
+    description: String
+  	ownerId: String
+  	owner: User
   	createAt: Float
   	classSubjects: [ClassSubject]
   }

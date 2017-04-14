@@ -836,15 +836,6 @@ const resolveFunctions = {
     }
   },
 
-  ClassSubject: {
-    activity(root) {
-      return getActivityOfCourse(root._id);
-    },
-    subject({subjectId}) {
-      return Subjects.findOne({_id: subjectId});
-    }
-  },
-
   Content: {
     user(root) {
       return Meteor.users.findOne({_id: root.userId});
@@ -944,6 +935,15 @@ const resolveFunctions = {
     },
     subject: ({subjectId}) => {
       return Subjects.findOne({_id: subjectId});
+    },
+    // activity(root) {
+    //   return getActivityOfCourse(root._id);
+    // },
+    class({classId}) {
+      return Classes.findOne({_id: classId});
+    },
+    teacher({teacherId}) {
+      return Meteor.users.findOne({_id: teacherId});
     }
   },
 
