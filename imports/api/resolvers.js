@@ -1,10 +1,13 @@
 import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
 import moment from 'moment';
+import async from 'async';
+var fs = require('fs');
 
 import { Players } from '../../collections/player'
 import { UserExams } from '../../collections/userExam'
 import { Examinations } from '../../collections/examination'
+import Fiber from 'fibers';
 
 Future = Npm.require('fibers/future');
 import CryptoJS from "crypto-js";
@@ -262,6 +265,27 @@ const resolveFunctions = {
       return Questions.find({isPublic: true}).fetch();
     },
 
+    questionByExam: (_, {examId}) => {
+      let examination = Examinations.findOne({_id: examId});
+      if(examination) {
+        return QuestionSets.findOne({_id: examination.questionSetId});
+      }
+      return;
+    },
+
+    playerResultByUser: (_, {token, examId}) => {
+      let user = Meteor.users.findOne({accessToken: token});
+      if(user) {
+        let player = Players.findOne({userId: user._id, isUser: true});
+        if(player) {
+          let userExam = UserExams.findOne({examId, playerId: player._id});
+          let resultIds = userExam.result;
+          return Results.find({_id: {$in: resultIds}}).fetch();
+        }
+      }
+      return;
+    },
+
       //trả  về danh sách user online và tin nhắn
     //--------------------------------------------------------------------------------------//
     userChat: (root, { userId }) => {
@@ -350,6 +374,9 @@ const resolveFunctions = {
     },
     getFriendList: (root, {userId}) => {
       return ;
+    },
+    examById: (_, {_id}) => {
+      return Examinations.findOne({_id});
     }
   },
 
@@ -639,6 +666,66 @@ const resolveFunctions = {
         return future.wait();
       }
     },
+    addQuestionFromFile: (_, {token, questionSet, questionFile}) => {
+      let user = Meteor.users.findOne({accessToken: token});
+      if(user) {
+        questionSet = JSON.parse(questionSet);
+        let future = new Future();
+        questionSetId = Random.id(16);
+        questionSet['_id'] = questionSetId;
+        questionSet['createdAt'] = moment().valueOf();
+        questionSet['createdById'] = user._id,
+        QuestionSets.insert(questionSet, (err, _id) => {
+          if(err) {
+
+          } else {
+              future.return(_id)
+          }
+        });
+
+        let array = questionFile.split(/\r?\n/);
+        __.forEach(array, (item, idx) => {
+          if(item === '') {
+            array.splice(idx, 1);
+          }
+        })
+        for(i = 0; i < array.length - 1; i++) {
+          let questionId = Random.id(16);
+          if(array[i].indexOf('Câu') > -1) {
+            let question = {
+              _id: questionId,
+              question: array[i],
+              answerSet: [],
+              correctAnswer: [],
+              createdById: user._id,
+              createdAt: moment().valueOf()
+            }
+            let j = i + 1;
+            while(array[j].indexOf('Câu') < 0 && j < array.length - 1) {
+              question.answerSet.push(array[j].replace(/(dapan)/gi, ''));
+              if(array[j].toLowerCase().indexOf('dapan') > -1 || array[j].toLowerCase().indexOf('dapan') > -1) {
+                question.correctAnswer.push(array[j].replace(/(dapan)/gi, ''));
+              }
+              j++;
+            }
+            Questions.insert(question, (err, result) => {
+              if(err) {
+                console.log('err ', err);
+              } else {
+                  console.log('result ', result);
+              }
+            });
+            QuestionHaves.insert({
+              questionSetId,
+              questionId: question._id,
+              score: 0
+            });
+          }
+        }
+        return future.wait();
+      }
+      return;
+    },
     insertQuestionFromBank: (_, {token, questionSet, questions}) => {
       var hashedToken = Accounts._hashLoginToken(token);
       var user = Meteor.users.find({'services.resume.loginTokens': {$elemMatch: {hashedToken: hashedToken}}}).fetch()[0];
@@ -815,11 +902,57 @@ const resolveFunctions = {
             time: moment().valueOf()
           }]
         }});
+        return examination._id;
       }
       return;
     },
     deleteNotification: (_, {noteId}) => {
       Notifications.remove({_id: noteId});
+      return;
+    },
+    startExamination: (_, {token, _id}) => {
+      let user = Meteor.users.findOne({accessToken: token});
+      if(user) {
+        let examination = Examinations.findOne({_id});
+        if(examination && examination.createdById === user._id) {
+          Examinations.update({_id}, {$set: {
+            status: 99
+          }});
+        }
+      }
+      return;
+    },
+    answerQuestion: (_, {token, examId, questionId, answer}) => {
+      let user = Meteor.users.findOne({accessToken: token});
+      if(user) {
+        let player = Players.findOne({userId: user._id});
+        if(player) {
+          answer = [answer];
+          let userExam = UserExams.findOne({examId, playerId: player._id});
+          let result = Results.findOne({questionId, _id: {$in: userExam.result}});
+          let question = Questions.findOne({_id: questionId});
+          let correctAnswer = question.correctAnswer;
+          if(result) {
+            Results.update({_id: result._id}, {$set: {
+              answer,
+              score: 0,
+              isCorrect: answer === correctAnswer ? true : false
+            }});
+          } else {
+              let resultId = Random.id(16);
+              Results.insert({
+                _id: resultId,
+                questionId,
+                answer,
+                score: 0,
+                isCorrect:  answer === correctAnswer ? true : false
+              })
+              UserExams.update({examId, playerId: player._id}, {$push: {
+                result: resultId
+              }});
+          }
+        }
+      }
       return;
     }
   },
@@ -842,6 +975,39 @@ const resolveFunctions = {
   Content: {
     user(root) {
       return Meteor.users.findOne({_id: root.userId});
+    }
+  },
+
+  Examination: {
+    questionSet({questionSetId}) {
+      return QuestionSets.findOne({_id: questionSetId});
+    },
+    createdBy({createdById}) {
+      return getUserInfo(createdById);
+    },
+    userExams({_id}) {
+      return UserExams.find({examId: _id}).fetch();
+    }
+  },
+
+  User: {
+    checkOutImage({checkOutImage}) {
+      return checkOutImage;
+    }
+  },
+
+  UserExam: {
+    player({playerId}) {
+      return Players.findOne({_id: playerId});
+    },
+    results({result}) {
+      return Results.find({_id: {$in: result}}).fetch();
+    }
+  },
+
+  Player: {
+    user({userId}) {
+      return Meteor.users.findOne({_id: userId});
     }
   },
 
@@ -959,6 +1125,11 @@ const resolveFunctions = {
     questions:  ({_id}) => {
       let questionHaves = QuestionHaves.find({questionSetId: _id}).map(item => item.questionId);
       return Questions.find({_id: {$in: questionHaves}}).fetch();
+    }
+  },
+  Result: {
+    question: ({questionId}) => {
+      return Questions.findOne({_id: questionId});
     }
   },
   User :  {
