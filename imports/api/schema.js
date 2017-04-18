@@ -247,6 +247,7 @@ const schema = [`
     insertUserToExam(token: String!, examCode: String!, link: String!) : String
     startExamination(token: String!, _id: String!): String
     answerQuestion(token: String!, examId: String!, questionId: String!, answer: String!): String
+    finishExamination(token: String!, _id: String!): String
   }
 
   type Subscription {

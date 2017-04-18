@@ -67,8 +67,9 @@ const getUserInfo = (userId) => {
       _id: query._id,
       name: query.profileObj ? query.profileObj.name : query.name ? query.name : query.username,
       image: '',
-      email: query.profileObj ? query.profileObj.email : query.email,
+      email: query.profileObj ? query.profileObj.email : query.email ? query.email : query.emails[0].address,
       social: query.googleId ? 'https://plus.google.com/u/0/' + query.googleId + '/posts' : 'https://facebook.com/u/0/' + query.id,
+      checkOutImage: query.checkOutImage
       //online: query.status.online,
       //lastLogin: getLastLogin(query.status.lastLogin.date)
     }
@@ -653,6 +654,7 @@ const resolveFunctions = {
         __.forEach(questions, item => {
           questionId = Random.id(16);
           item = JSON.parse(item);
+          console.log('item ', item);
           item['_id'] = questionId;
           item['createdAt'] = moment().valueOf();
           item['createdById'] = user._id;
@@ -922,6 +924,18 @@ const resolveFunctions = {
       }
       return;
     },
+    finishExamination: (_, {token, _id}) => {
+      let user = Meteor.users.findOne({accessToken: token});
+      if(user) {
+        let examination = Examinations.findOne({_id});
+        if(examination && examination.createdById === user._id) {
+          Examinations.update({_id}, {$set: {
+            status: 100
+          }});
+        }
+      }
+      return;
+    },
     answerQuestion: (_, {token, examId, questionId, answer}) => {
       let user = Meteor.users.findOne({accessToken: token});
       if(user) {
@@ -1007,7 +1021,7 @@ const resolveFunctions = {
 
   Player: {
     user({userId}) {
-      return Meteor.users.findOne({_id: userId});
+      return getUserInfo(userId);
     }
   },
 
