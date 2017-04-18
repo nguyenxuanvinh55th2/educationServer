@@ -212,13 +212,27 @@ const resolveFunctions = {
       if(token){
         let existsUser = Meteor.users.findOne({accessToken: token});
         if(existsUser){
-          return JSON.stringify(existsUser);
+          if(existsUser.profileObj && existsUser.profileObj.imageUrl){
+            existsUser.image =  existsUser.profileObj.imageUrl
+          }
+          else if (existsUser.picture) {
+            existsUser.image = existsUser.picture.data.url
+          }
+          else if (existsUser.profile && existsUser.profile.imageId) {
+            existsUser.image = Files.findOne({_id: existsUser.profile.imageId}).link();
+          }
+          return JSON.stringify({
+            _id: existsUser._id,
+            image : existsUser.image ? existsUser.image : '',
+            name: existsUser.profileObj ? existsUser.profileObj.name : existsUser.name ? existsUser.name : existsUser.username,
+            email: existsUser.profileObj ? existsUser.profileObj.email : existsUser.email ? existsUser.email : existsUser.emails[0] ? existsUser.emails[0].address : ''
+          });
         }
       }
       return ''
     },
 
-    classSubjectsByTeacher: (token) => {
+    classSubjectsByTeacher: (root,{token}) => {
       let user = Meteor.users.findOne({accessToken: token});
       if(user) {
         let profileIds = Profiles.find({name: 'teacher'}).map(item => item._id);
@@ -232,7 +246,6 @@ const resolveFunctions = {
       }
       return [];
     },
-
       //trả về thông báo của user tương ứng
     //------------------------------------------------------------------------------------//
     notification: (root, {token}) => {
@@ -558,10 +571,15 @@ const resolveFunctions = {
                 Meteor.users.update({_id: user._id},{$set:{accessToken: stampedLoginToken.token}});
                 user.image = '';
                 if (user.profile && user.profile.imageId) {
-                  user.image = Files.findOne({_id: imageId}).link();
+                  user.image = Files.findOne({_id: user.profile.imageId}).link();
                 }
                 return JSON.stringify({
-                  user: user,
+                  user: {
+                    _id: user._id,
+                    name: user.username,
+                    email: user.emails[0] ? user.emails[0].address : '',
+                    image: user.image
+                  },
                   token: stampedLoginToken.token
                 });
             }
@@ -820,15 +838,16 @@ const resolveFunctions = {
             throw error;
           }
           else if (result) {
-            let subjectId = result._id;
-            if(info.joinToClass && info.classId && info.classeSubject.courseId){
-              info.classeSubject.subjectId = subjectId;
-              ClassSubjects.insert(info.classeSubject,(error,result) => {
+            let subjectId = result;
+            if(info.joinCourse && info.classId && info.classSubject.courseId){
+              info.classSubject.subjectId = subjectId;
+              info.classSubject.classId = info.classId;
+              ClassSubjects.insert(info.classSubject,(error,result) => {
                 if(error){
                   throw error;
                 }
                 else if (result) {
-                  let classSubjectId = result._id;
+                  let classSubjectId = result;
                   AccountingObjects.insert({
                     objectId: classSubjectId,
                     isClassSubject: true
@@ -837,29 +856,61 @@ const resolveFunctions = {
                       throw error;
                     }
                     else if (result) {
-                      let accountingObjectId = result._id;
+                      let accountingObjectId = result;
                       Profiles.insert({
-                        name: 'manageer',
+                        name: 'teacher',
                         roles: ['userCanManage', 'userCanView', 'userCanUploadLesson', 'userCanUploadAssignment', 'userCanUploadPoll', 'userCanuploadTest']
                       },(error,result) => {
                         if(error){
                           throw error;
                         }
                         else if (result) {
-                          let profileId = result._id;
+                          let profileId = result;
                           Permissions.insert({
                             userId: userId,
                             profileId: profileId,
-                            accountingObjectId: accountingObjectId
+                            accountingObjectId: accountingObjectId,
+                            isClassSubject: true
                           })
                         }
                       });
+                      if(info.themes){
+                        __.forEach(info.themes,(theme) => {
+                          if(!theme._id){
+                            Themes.insert(theme,(error, result) => {
+                              if(error){
+                                throw error;
+                              }
+                              else {
+                                let themeId = result;
+                                Activities.insert({
+                                  themeId: themeId,
+                                  topicId: '',
+                                  classSubjectId: classSubjectId
+                                });
+                              }
+                            });
+                          }
+                          else {
+                            //update activity for user
+                          }
+                        });
+                      }
                     }
                   })
                 }
               })
             }
-            // send Notifications and send mails to invite user
+            if(info.userSubjects){
+              __.forEach(info.userSubjects,(userInfo,idx) => {
+                //send Notifications
+              });
+            }
+            if(info.userMails){
+              __.forEach(info.userMails,(mail,idx) => {
+                //send mail
+              });
+            }
           }
         })
       }
@@ -974,15 +1025,6 @@ const resolveFunctions = {
   Activity: {
     topic(root) {
       return getTopicOfActivity(root.topicId);
-    }
-  },
-
-  ClassSubject: {
-    activity(root) {
-      return getActivityOfCourse(root._id);
-    },
-    subject({subjectId}) {
-      return Subjects.findOne({_id: subjectId});
     }
   },
 
@@ -1118,6 +1160,15 @@ const resolveFunctions = {
     },
     subject: ({subjectId}) => {
       return Subjects.findOne({_id: subjectId});
+    },
+    // activity(root) {
+    //   return getActivityOfCourse(root._id);
+    // },
+    class({classId}) {
+      return Classes.findOne({_id: classId});
+    },
+    teacher({teacherId}) {
+      return Meteor.users.findOne({_id: teacherId});
     }
   },
 
@@ -1163,7 +1214,7 @@ const resolveFunctions = {
       return '';
     },
     email: (root) => {
-      return root.profileObj ? root.profileObj.email : root.email;
+      return root.profileObj ? root.profileObj.email : root.email ? root.email : root.emails[0] ? root.emails[0].address : '';
     },
     social: (root) => {
       return root.googleId ? 'https://plus.google.com/u/0/' + root.googleId + '/posts' : 'https://facebook.com/u/0/' + root.id;

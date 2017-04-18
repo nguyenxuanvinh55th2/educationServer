@@ -32,12 +32,15 @@ const schema = [`
   }
 
   type ClassSubject {
-  	_id: String,
-  	subject: Subject,
-  	dateStart: String,
-  	dateEnd: String,
-  	isOpen: Boolean,
-  	publicActivity: Boolean,
+  	_id: String
+    name: String
+    teacher: User
+  	subject: Subject
+    class: Class
+  	dateStart: String
+  	dateEnd: String
+  	isOpen: Boolean
+  	publicActivity: Boolean
   	theme: [Theme]
   }
 
@@ -108,10 +111,12 @@ const schema = [`
   }
 
   type Subject {
-  	_id: String,
-  	name: String,
-  	ownerId: String,
-  	owner: User,
+  	_id: String
+    code: String
+  	name: String
+    description: String
+  	ownerId: String
+  	owner: User
   	createAt: Float
   	classSubjects: [ClassSubject]
   }
