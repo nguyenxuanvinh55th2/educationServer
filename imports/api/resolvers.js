@@ -242,7 +242,6 @@ const resolveFunctions = {
       }
       return [];
     },
-
       //trả về thông báo của user tương ứng
     //------------------------------------------------------------------------------------//
     notification: (root, {token}) => {

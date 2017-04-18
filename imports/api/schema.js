@@ -83,6 +83,7 @@ const schema = [`
 
   type Subject {
   	_id: String
+    code: String
   	name: String
     description: String
   	ownerId: String
