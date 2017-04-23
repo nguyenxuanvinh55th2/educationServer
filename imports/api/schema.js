@@ -52,11 +52,12 @@ const schema = [`
   }
 
   type File {
-  	index:Int,
-  	ownerId: String,
-  	owner: User,
-  	filename:String,
-  	filetype : String,
+    _id: String
+  	index:Int
+  	ownerId: String
+  	owner: User
+  	filename:String
+  	filetype : String
   	link : String
   }
 
@@ -117,18 +118,19 @@ const schema = [`
   }
 
   type Topic {
-  	_id: String,
-  	type: String,
-  	ownerId: String,
-  	owner: User,
-  	title : String,
-  	content: String,
-  	createAt: String,
-  	dateStart: String,
-  	index: String,
-  	dateEnd: String,
-  	files : [File],
+  	_id: String
+    isForum: Boolean
+    isAssignment: Boolean
+    isTheme: Boolean
+  	owner: User
+  	title : String
+  	content: String
+  	dateStart: String
+  	dateEnd: String
+  	files : [File]
   	memberReply: [MemberReply]
+    links: [String]
+    selection: [String]
   }
 
   type Question {
@@ -183,6 +185,7 @@ const schema = [`
     getSubjectByTeacher(userId: String): [ClassSubject]
     notification(token: String!) : [Notification]
     getFriendList (userId: String): [User]
+    getForumBySubject (subjectId: String!): [Topic]
   }
 
   type Mutation {
@@ -204,6 +207,7 @@ const schema = [`
     updateChatContent(token: String!, chatId: String!) : String
     deleteNotification(noteId: String!) : String
     insertUserToExam(token: String!, examCode: String!, link: String!) : String
+    insertForum(token: String!, info: String): String
   }
 
   type Subscription {

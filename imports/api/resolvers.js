@@ -363,6 +363,9 @@ const resolveFunctions = {
     },
     getFriendList: (root, {userId}) => {
       return ;
+    },
+    getForumBySubject: (root, {subjectId}) => {
+      return Topics.find({subjectId: subjectId, isForum: true}).fetch();
     }
   },
 
@@ -872,6 +875,16 @@ const resolveFunctions = {
     deleteNotification: (_, {noteId}) => {
       Notifications.remove({_id: noteId});
       return;
+    },
+    insertForum: (_,{token, info}) => {
+      let user = Meteor.users.findOne({accessToken: token});
+      if(user) {
+        info = JSON.parse(info);
+        info.createdAt = moment().valueOf();
+        info.createdById = user._id;
+        return Topics.insert(info);
+      }
+      return ;
     }
   },
 
@@ -1033,6 +1046,11 @@ const resolveFunctions = {
     },
     social: (root) => {
       return root.googleId ? 'https://plus.google.com/u/0/' + root.googleId + '/posts' : 'https://facebook.com/u/0/' + root.id;
+    }
+  },
+  Topic: {
+    memberReply: ({_id}) => {
+      return MemberReplys.find({topicId: _id}).fetch();
     }
   },
   Subscription: {
