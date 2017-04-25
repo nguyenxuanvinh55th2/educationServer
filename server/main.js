@@ -124,26 +124,3 @@ Meteor.methods({
     return Meteor.users.find({_id: {$in: userIds}}).fetch();
   }
 })
-
-// Meteor.methods({
-//   loginGgUser: (user) => {
-//     let checkId = Meteor.users.find({googleId: user.googleId}).count();
-//     if(checkId === 0)
-//       Meteor.users.insert(user, (err) => {
-//         if(err) {
-//           console.log("message error ", err);
-//         }
-//       });
-//     return Meteor.users.findOne({googleId: user.googleId});
-//   },
-//   loginFbUser: (user) => {
-//     let checkId = Meteor.users.find({id: user.id}).count();
-//     if(checkId === 0)
-//       Meteor.users.insert(user, (err) => {
-//         if(err) {
-//           console.log("message error ", err);
-//         }
-//       });
-//     return Meteor.users.findOne({id: user.id});
-//   }
-// });

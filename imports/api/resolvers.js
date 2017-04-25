@@ -880,9 +880,11 @@ const resolveFunctions = {
       let user = Meteor.users.findOne({accessToken: token});
       if(user) {
         info = JSON.parse(info);
-        info.createdAt = moment().valueOf();
-        info.createdById = user._id;
-        return Topics.insert(info);
+        info.data.createdAt = moment().valueOf();
+        info.data.createdById = user._id;
+        console.log(info.data);
+        Topics.insert(info.data);
+        return ;
       }
       return ;
     }
