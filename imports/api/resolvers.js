@@ -876,15 +876,25 @@ const resolveFunctions = {
       Notifications.remove({_id: noteId});
       return;
     },
-    insertForum: (_,{token, info}) => {
+    insertTopic: (_,{token, info}) => {
       let user = Meteor.users.findOne({accessToken: token});
       if(user) {
         info = JSON.parse(info);
         info.data.createdAt = moment().valueOf();
         info.data.createdById = user._id;
-        console.log(info.data);
-        Topics.insert(info.data);
-        return ;
+        return Topics.insert(info.data,(error,result) => {
+          if(error){
+            throw error;
+          }
+          else {
+            console.log(result);
+            let ob = {
+              topicId: result,
+              classSubjectId: info.classSubjectId
+            }
+            Activities.insert(ob);
+          }
+        });
       }
       return ;
     }
