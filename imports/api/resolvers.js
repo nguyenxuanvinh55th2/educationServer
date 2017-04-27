@@ -293,8 +293,11 @@ const resolveFunctions = {
         let player = Players.findOne({userId: user._id, isUser: true});
         if(player) {
           let userExam = UserExams.findOne({examId, playerId: player._id});
-          let resultIds = userExam.result;
-          return Results.find({_id: {$in: resultIds}}).fetch();
+          if(userExam) {
+            let resultIds = userExam.result;
+            return Results.find({_id: {$in: resultIds}}).fetch();
+          }
+          return
         }
       }
       return;
@@ -669,6 +672,7 @@ const resolveFunctions = {
               future.return(_id)
           }
         });
+        console.log('questions ', questions);
         __.forEach(questions, item => {
           questionId = Random.id(16);
           item = JSON.parse(item);
@@ -676,12 +680,13 @@ const resolveFunctions = {
           item['_id'] = questionId;
           item['createdAt'] = moment().valueOf();
           item['createdById'] = user._id;
-          Questions.insert(item);
           QuestionHaves.insert({
             questionSetId,
             questionId,
             score: item.score
           })
+          delete item.score
+          Questions.insert(item);
         });
         return future.wait();
       }
@@ -937,12 +942,18 @@ const resolveFunctions = {
         if(examination.status === 0 || examination.status === 100) {
           return 'canNotJoin';
         }
-        let playerId = Random.id(16);
-        Players.insert({
-          _id: playerId,
-          userId: user._id,
-          isUser: true
-        });
+        player = Players.findOne({userId: user._id});
+        let playerId;
+        if(!player) {
+          playerId = Random.id(16);
+          Players.insert({
+            _id: playerId,
+            userId: user._id,
+            isUser: true
+          });
+        } else {
+            playerId = player._id;
+        }
         UserExams.insert({
           examId: examination._id,
           playerId,
@@ -987,7 +998,7 @@ const resolveFunctions = {
       }
       return;
     },
-    answerQuestion: (_, {token, examId, questionId, answer}) => {
+    answerQuestion: (_, {token, examId, questionSetId, questionId, answer}) => {
       let user = Meteor.users.findOne({accessToken: token});
       if(user) {
         let player = Players.findOne({userId: user._id});
@@ -996,12 +1007,13 @@ const resolveFunctions = {
           let userExam = UserExams.findOne({examId, playerId: player._id});
           let result = Results.findOne({questionId, _id: {$in: userExam.result}});
           let question = Questions.findOne({_id: questionId});
+          let score = QuestionHaves.findOne({questionId, questionSetId}).score;
           let correctAnswer = question.correctAnswer;
           if(result) {
             Results.update({_id: result._id}, {$set: {
               answer,
-              score: 0,
-              isCorrect: answer === correctAnswer ? true : false
+              score: JSON.stringify(answer) === JSON.stringify(correctAnswer) ? score : 0,
+              isCorrect:  JSON.stringify(answer) === JSON.stringify(correctAnswer)
             }});
           } else {
               let resultId = Random.id(16);
@@ -1009,8 +1021,8 @@ const resolveFunctions = {
                 _id: resultId,
                 questionId,
                 answer,
-                score: 0,
-                isCorrect:  answer === correctAnswer ? true : false
+                score: JSON.stringify(answer) === JSON.stringify(correctAnswer) ? score : 0,
+                isCorrect:  JSON.stringify(answer) === JSON.stringify(correctAnswer)
               })
               UserExams.update({examId, playerId: player._id}, {$push: {
                 result: resultId
