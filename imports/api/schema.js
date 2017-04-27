@@ -23,6 +23,14 @@ const schema = [`
   	date: Float
   }
 
+  type Result {
+    _id: String,
+    question: Question,
+    answer: [String],
+    score: Int,
+    isCorrect: Boolean
+  }
+
   type ClassSubject {
   	_id: String
     name: String
@@ -34,6 +42,27 @@ const schema = [`
   	isOpen: Boolean
   	publicActivity: Boolean
   	theme: [Theme]
+  }
+
+  type Examination {
+    _id : String,
+    code : String,
+    createdBy: User,
+    name : String,
+    questionSet: QuestionSet,
+    userExams: [UserExam],
+    description : String,
+    userCount : Int,
+    time : Int,
+    createdAt : Float,
+    status : Int
+  }
+
+  type Player {
+    _id: String,
+    user: User,
+    result: [Result]
+    isUser: Boolean,
   }
 
   type Theme {
@@ -100,7 +129,13 @@ const schema = [`
   	email: String,
   	social: String,
   	online: Boolean,
-  	lastLogin: String
+  	lastLogin: String,
+    checkOutImage: [CheckOutImage]
+  }
+
+  type CheckOutImage {
+    link: String,
+    time: Float
   }
 
   type UserChat {
@@ -115,6 +150,13 @@ const schema = [`
   	createrOf: [Class],
   	teacherOf: [Class],
   	studentOf: [Class],
+  }
+
+  type UserExam {
+    _id : String,
+    player : Player,
+    results : [Result],
+    correctCount : Int
   }
 
   type Topic {
@@ -177,6 +219,7 @@ const schema = [`
     classInfo(classId: String, userId: String, role: String): Class
     questionSetBankUser(userId: String!): [QuestionSet]
     questionSetBankPublic: [QuestionSet]
+    questionByExam(examId: String!): QuestionSet
     questionBank: [Question]
     subjectByUser(token: String!): [Subject]
     questionBySubject(token: String, subjectId: String!, type: String!): [Question]
@@ -185,6 +228,8 @@ const schema = [`
     getSubjectByTeacher(userId: String): [ClassSubject]
     notification(token: String!) : [Notification]
     getFriendList (userId: String): [User]
+    playerResultByUser (token: String!, examId: String!) : [Result]
+    examById (_id: String!): Examination
     getForumBySubject (subjectId: String!): [Topic]
   }
 
@@ -197,6 +242,7 @@ const schema = [`
     loginWithFacebook(info: String): String
     insertQuestionSet(userId: String!, questionSet: String!, questions: [String]!): String
     insertQuestionFromBank(token: String!, questionSet: String!, questions: [String]!): String
+    addQuestionFromFile(token: String!, questionSet: String!, questionFile: String!): String
     insertExamination(userId: String!, info: String!): String,
     insertCourse(userId: String!, info: String!): String
     insertClass(userId: String!, info: String) : String
@@ -208,6 +254,9 @@ const schema = [`
     deleteNotification(noteId: String!) : String
     insertUserToExam(token: String!, examCode: String!, link: String!) : String
     insertTopic(token: String!, info: String): String
+    startExamination(token: String!, _id: String!): String
+    answerQuestion(token: String!, examId: String!, questionSetId: String!, questionId: String!, answer: String!): String
+    finishExamination(token: String!, _id: String!): String
   }
 
   type Subscription {

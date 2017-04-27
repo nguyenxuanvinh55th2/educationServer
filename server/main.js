@@ -14,6 +14,31 @@ import { PersonalPlayers } from '../collections/personalPlayer';
 import { UserExams } from '../collections/userExam';
 import { Examinations } from '../collections/examination';
 
+// fs.readFile('../../../../../public/dethi.doc', 'utf8', function(err, data) {
+//   if (err) throw err;
+//   let questions = [];
+//   let array = data.split(/\r?\n/);
+//   for(i = 0; i < array.length - 1; i++) {
+//     if(array[i].indexOf('Câu') > -1) {
+//       let question = {
+//         question: array[i],
+//         answerSet: [],
+//         correctAnswer: []
+//       }
+//       let j = i + 1;
+//       while(array[j].indexOf('Câu') < 0 && j < array.length - 1) {
+//         question.answerSet.push(array[j].replace(/(dapan)/gi, ''));
+//         if(array[j].toLowerCase().indexOf('dapan') > -1 || array[j].toLowerCase().indexOf('dapan') > -1) {
+//           question.correctAnswer.push(array[j]);
+//         }
+//         j++;
+//       }
+//       questions.push(question)
+//     }
+//   }
+//   console.log('array: ', questions);
+// });
+
 if(Meteor.isServer){
   Meteor.publish('userExams', function(){
     return UserExams.find({});//note
