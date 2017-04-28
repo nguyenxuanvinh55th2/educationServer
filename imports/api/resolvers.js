@@ -407,6 +407,15 @@ const resolveFunctions = {
     },
     user: (root, {userId}) => {
       return getUserInfo(userId);
+    },
+    getActivityForum: (root, {classSubjectId}) => {
+      return Activities.find({classSubjectId: classSubjectId, isForum: true}).fetch()
+    },
+    getActivityAssignment: (root, {classSubjectId}) => {
+      return Activities.find({classSubjectId: classSubjectId, isAssignment: true}).fetch()
+    },
+    getActivityTheme: (root, {classSubjectId}) => {
+      return Activities.find({classSubjectId: classSubjectId, isTheme: true}).fetch()
     }
   },
 
@@ -1071,23 +1080,61 @@ const resolveFunctions = {
       }
       return;
     },
-    insertForum: (_,{token, info}) => {
+    insertTopic: (_,{token, info}) => {
       let user = Meteor.users.findOne({accessToken: token});
       if(user) {
         info = JSON.parse(info);
         info.data.createdAt = moment().valueOf();
         info.data.createdById = user._id;
-        console.log(info.data);
-        Topics.insert(info.data);
-        return ;
+        info.data.ownerId = user._id;
+        return Topics.insert(info.data,(error,result) => {
+          if(error){
+            throw error;
+          }
+          else {
+            let obActive = {
+              topicId: result,
+              classSubjectId: info.classSubjectId,
+              themeId: ''
+            }
+            if(info.data.isForum ){
+              obActive.isForum = true;
+              Activities.insert(obActive);
+            }
+            else if (info.data.isAssignment) {
+              obActive.isAssignment = true;
+              Activities.insert(obActive);
+            }
+            else if (info.data.isTheme) {
+              if(info.data.theme){
+                Themes.insert(info.data.theme,(error, result) => {
+                  if(error){
+                    throw error;
+                  }
+                  else {
+                    obActive.isTheme = true;
+                    obActive.themeId = result;
+                    Activities.insert(obActive)
+                  }
+                })
+              }
+            }
+          }
+        });
       }
       return ;
     }
   },
 
   Activity: {
-    topic(root) {
-      return getTopicOfActivity(root.topicId);
+    topic: ({ topicId }) => {
+      return Topics.findOne({_id: topicId});
+    },
+    theme: ({themeId}) => {
+      if(themeId){
+        return Themes.findOne({_id: themeId});
+      }
+      return ;
     }
   },
 
@@ -1176,19 +1223,6 @@ const resolveFunctions = {
       return getPublicCourseOfSubject(root._id)
     }
   },
-
-  Topic: {
-    owner(root) {
-      return Meteor.users.findOne({_id: ownerId});
-    },
-    files(root) {
-      return getFileList(root._id)
-    },
-    memberReply(root) {
-      return getMemberReply(root._id)
-    }
-  },
-
   UserClass: {
     createrOf(root) {
       return getClassByUser(root.userId, 'creater');
@@ -1286,6 +1320,22 @@ const resolveFunctions = {
   Topic: {
     memberReply: ({_id}) => {
       return MemberReplys.find({topicId: _id}).fetch();
+    },
+    files: ({files}) => {
+      if(files && files[0]){
+        return Files.find({_id:{$in:model.images}}).each().map((img)=>{
+                return {
+                  _id: img._id,
+                  file: img.link(),
+                  fileName: img.name,
+                  type: img.type
+                };
+            });
+      }
+      return [];
+    },
+    owner: ({ownerId}) => {
+      return Meteor.users.findOne({_id: ownerId});
     }
   },
   Subscription: {

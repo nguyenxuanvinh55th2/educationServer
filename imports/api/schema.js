@@ -4,9 +4,14 @@ import resolvers from './resolvers';
 
 const schema = [`
   type Activity {
-  	_id: String,
-  	topicId: String,
+  	_id: String
+  	classSubjectId: String
+    isForum: Boolean
+    isAssignment: Boolean
+    isTheme: Boolean
+    themeId: String
   	topic: Topic
+    theme: Theme
   }
 
   type Background {
@@ -165,15 +170,17 @@ const schema = [`
     isForum: Boolean
     isAssignment: Boolean
     isTheme: Boolean
+    ownerId: String
   	owner: User
   	title : String
   	content: String
-  	dateStart: String
-  	dateEnd: String
+  	dateStart: Float
+  	dateEnd: Float
   	files : [File]
   	memberReply: [MemberReply]
     links: [String]
     selection: [String]
+    createdAt: Float
   }
 
   type Question {
@@ -234,6 +241,9 @@ const schema = [`
     examById (_id: String!): Examination
     examByUser (token: String!): [Examination]
     getForumBySubject (subjectId: String!): [Topic]
+    getActivityForum (classSubjectId: String): [Activity]
+    getActivityAssignment (classSubjectId: String): [Activity]
+    getActivityTheme (classSubjectId: String): [Activity]
   }
 
   type Mutation {
@@ -262,6 +272,10 @@ const schema = [`
     finishExamination(token: String!, _id: String!): String
     insertForum(token: String!, info: String): String
     screenShot(token: String!, link: String!) : String
+    insertTopic(token: String!, info: String): String
+    startExamination(token: String!, _id: String!): String
+    answerQuestion(token: String!, examId: String!, questionSetId: String!, questionId: String!, answer: String!): String
+    finishExamination(token: String!, _id: String!): String
   }
 
   type Subscription {
