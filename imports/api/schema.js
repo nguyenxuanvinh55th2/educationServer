@@ -47,6 +47,7 @@ const schema = [`
   type Examination {
     _id : String,
     code : String,
+    timeStart: Float,
     createdBy: User,
     name : String,
     questionSet: QuestionSet,
@@ -211,6 +212,7 @@ const schema = [`
     userClass(userId: String): UserClass,
     classSubjectsByTeacher(token: String!): [ClassSubject],
     users: [User],
+    user(userId: String): User,
     getBackgroundList: [Background],
     getClassInfo(classId: String, userId: String, role: String): Class
     subjects: [Subject],
@@ -230,6 +232,7 @@ const schema = [`
     getFriendList (userId: String): [User]
     playerResultByUser (token: String!, examId: String!) : [Result]
     examById (_id: String!): Examination
+    examByUser (token: String!): [Examination]
     getForumBySubject (subjectId: String!): [Topic]
   }
 
@@ -253,10 +256,12 @@ const schema = [`
     updateChatContent(token: String!, chatId: String!) : String
     deleteNotification(noteId: String!) : String
     insertUserToExam(token: String!, examCode: String!, link: String!) : String
+    readyExamination(token: String!, _id: String!): String
     startExamination(token: String!, _id: String!): String
     answerQuestion(token: String!, examId: String!, questionSetId: String!, questionId: String!, answer: String!): String
     finishExamination(token: String!, _id: String!): String
     insertForum(token: String!, info: String): String
+    screenShot(token: String!, link: String!) : String
   }
 
   type Subscription {

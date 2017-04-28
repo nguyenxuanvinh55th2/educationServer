@@ -397,6 +397,16 @@ const resolveFunctions = {
     },
     getForumBySubject: (root, {subjectId}) => {
       return Topics.find({subjectId: subjectId, isForum: true}).fetch();
+    },
+    examByUser: (root, {token}) => {
+      var user = Meteor.users.find({accessToken: token}).fetch()[0];
+      if(user) {
+        return Examinations.find({createdById: user._id}).fetch();
+      }
+      return
+    },
+    user: (root, {userId}) => {
+      return getUserInfo(userId);
     }
   },
 
@@ -973,8 +983,33 @@ const resolveFunctions = {
       }
       return;
     },
+    screenShot: (_, {token, link}) => {
+      let user = Meteor.users.findOne({accessToken: token});
+      if(user) {
+        Meteor.users.update({_id: user._id}, {$push: {
+          checkOutImage: {
+            link,
+            time: moment().valueOf()
+          }
+        }});
+      }
+      return
+    },
     deleteNotification: (_, {noteId}) => {
       Notifications.remove({_id: noteId});
+      return;
+    },
+    readyExamination: (_, {token, _id}) => {
+      let user = Meteor.users.findOne({accessToken: token});
+      if(user) {
+        console.log('someone');
+        let examination = Examinations.findOne({_id});
+        if(examination && examination.createdById === user._id) {
+          Examinations.update({_id}, {$set: {
+            status: 1
+          }});
+        }
+      }
       return;
     },
     startExamination: (_, {token, _id}) => {
@@ -983,7 +1018,8 @@ const resolveFunctions = {
         let examination = Examinations.findOne({_id});
         if(examination && examination.createdById === user._id) {
           Examinations.update({_id}, {$set: {
-            status: 99
+            status: 99,
+            timeStart: moment().valueOf()
           }});
         }
       }
