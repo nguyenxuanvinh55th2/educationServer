@@ -137,6 +137,8 @@ const schema = [`
   	online: Boolean,
   	lastLogin: String,
     checkOutImage: [CheckOutImage]
+    friendList: [String]
+    userFriendsUser: [User]
   }
 
   type CheckOutImage {

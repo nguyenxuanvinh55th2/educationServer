@@ -406,7 +406,7 @@ const resolveFunctions = {
       return
     },
     user: (root, {userId}) => {
-      return getUserInfo(userId);
+      return Meteor.users.findOne({_id: userId});
     },
     getActivityForum: (root, {classSubjectId}) => {
       return Activities.find({classSubjectId: classSubjectId, isForum: true}).fetch()
@@ -1156,12 +1156,6 @@ const resolveFunctions = {
     }
   },
 
-  User: {
-    checkOutImage({checkOutImage}) {
-      return checkOutImage;
-    }
-  },
-
   UserExam: {
     player({playerId}) {
       return Players.findOne({_id: playerId});
@@ -1315,6 +1309,12 @@ const resolveFunctions = {
     },
     social: (root) => {
       return root.googleId ? 'https://plus.google.com/u/0/' + root.googleId + '/posts' : 'https://facebook.com/u/0/' + root.id;
+    },
+    checkOutImage: ({checkOutImage}) => {
+      return checkOutImage;
+    },
+    userFriendsUser: ({friendList}) => {
+      return Meteor.users.find({_id:{$in: friendList}}).fetch();
     }
   },
   Topic: {
