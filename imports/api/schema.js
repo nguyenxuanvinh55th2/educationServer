@@ -4,9 +4,14 @@ import resolvers from './resolvers';
 
 const schema = [`
   type Activity {
-  	_id: String,
-  	topicId: String,
+  	_id: String
+  	classSubjectId: String
+    isForum: Boolean
+    isAssignment: Boolean
+    isTheme: Boolean
+    themeId: String
   	topic: Topic
+    theme: Theme
   }
 
   type Background {
@@ -164,15 +169,17 @@ const schema = [`
     isForum: Boolean
     isAssignment: Boolean
     isTheme: Boolean
+    ownerId: String
   	owner: User
   	title : String
   	content: String
-  	dateStart: String
-  	dateEnd: String
+  	dateStart: Float
+  	dateEnd: Float
   	files : [File]
   	memberReply: [MemberReply]
     links: [String]
     selection: [String]
+    createdAt: Float
   }
 
   type Question {
@@ -231,6 +238,9 @@ const schema = [`
     playerResultByUser (token: String!, examId: String!) : [Result]
     examById (_id: String!): Examination
     getForumBySubject (subjectId: String!): [Topic]
+    getActivityForum (classSubjectId: String): [Activity]
+    getActivityAssignment (classSubjectId: String): [Activity]
+    getActivityTheme (classSubjectId: String): [Activity]
   }
 
   type Mutation {
