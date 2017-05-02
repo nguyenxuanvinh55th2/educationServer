@@ -97,12 +97,12 @@ const schema = [`
   }
 
   type MemberReply {
-  	_id:String,
-  	ownerId:String,
-  	owner: User,
-  	content: String,
-  	files:[File],
-  	createAt:String,
+  	_id:String
+  	ownerId:String
+  	owner: User
+  	content: String
+  	files:[File]
+  	createAt:String
   	index: String
   }
 
@@ -278,6 +278,7 @@ const schema = [`
     startExamination(token: String!, _id: String!): String
     answerQuestion(token: String!, examId: String!, questionSetId: String!, questionId: String!, answer: String!): String
     finishExamination(token: String!, _id: String!): String
+    insertCommentForum(token: String!, info: String): String
   }
 
   type Subscription {

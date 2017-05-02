@@ -1123,6 +1123,21 @@ const resolveFunctions = {
         });
       }
       return ;
+    },
+    insertCommentForum: (_,{token, info}) => {
+      let user = Meteor.users.findOne({accessToken: token});
+      if(user) {
+        info = JSON.parse(info);
+        info.createdAt = moment().valueOf();
+        info.createdById = user._id;
+        info.ownerId = user._id;
+        return MemberReplys.insert(info,(error) => {
+            if(error){
+              throw error;
+            }
+          })
+        }
+      return ;
     }
   },
 
@@ -1334,6 +1349,11 @@ const resolveFunctions = {
       }
       return [];
     },
+    owner: ({ownerId}) => {
+      return Meteor.users.findOne({_id: ownerId});
+    }
+  },
+  MemberReply: {
     owner: ({ownerId}) => {
       return Meteor.users.findOne({_id: ownerId});
     }
