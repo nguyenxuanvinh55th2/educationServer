@@ -1035,9 +1035,11 @@ const resolveFunctions = {
       return;
     },
     finishExamination: (_, {token, _id}) => {
+      console.log("token ", token);
       let user = Meteor.users.findOne({accessToken: token});
       if(user) {
         let examination = Examinations.findOne({_id});
+        console.log("message ", examination);
         if(examination && examination.createdById === user._id) {
           Examinations.update({_id}, {$set: {
             status: 100
@@ -1074,6 +1076,18 @@ const resolveFunctions = {
               })
               UserExams.update({examId, playerId: player._id}, {$push: {
                 result: resultId
+              }});
+          }
+          if(JSON.stringify(answer) === JSON.stringify(correctAnswer)) {
+            Questions.update({_id: questionId}, {$set: {
+              anserCount: question.anserCount + 1,
+              correctCount: question.correctCount + 1,
+              correctRate: (question.correctCount + 1) / (question.anserCount + 1)
+            }});
+          } else {
+              Questions.update({_id: questionId}, {$set: {
+                anserCount: question.anserCount + 1,
+                correctRate: (question.correctCount + 1) / (question.anserCount + 1)
               }});
           }
         }

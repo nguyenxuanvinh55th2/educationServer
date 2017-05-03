@@ -62,6 +62,7 @@ const schema = [`
     time : Int,
     createdAt : Float,
     status : Int
+    isClassStyle: Boolean
   }
 
   type Player {
