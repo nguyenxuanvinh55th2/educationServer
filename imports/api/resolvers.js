@@ -1092,6 +1092,24 @@ const resolveFunctions = {
             throw error;
           }
           else {
+            let docData = info.files;
+            __.forEach(docData, (content, key)=>{
+                if(content.fileName){
+                    imageData[key] = content;
+                    imageData[key].file = content.file.replace(/^data:image\/(png|gif|jpeg);base64,/,'');
+                    content = '';
+                }
+            });
+            __.forEach(imageData, (img, key)=>{
+                buf = new Buffer(img.file, 'base64');
+                Files.write(buf, {fileName: img.fileName, type: img.type}, (err, fileRef)=>{
+                    if (err) {
+                      throw err;
+                    } else {
+                      Topics.update({ _id: result },{ $push: { files: fileRef._id }});
+                    }
+                }, true);
+            });
             let obActive = {
               topicId: result,
               classSubjectId: info.classSubjectId,
@@ -1106,8 +1124,8 @@ const resolveFunctions = {
               Activities.insert(obActive);
             }
             else if (info.data.isTheme) {
-              if(info.data.theme){
-                Themes.insert(info.data.theme,(error, result) => {
+              if(info.theme){
+                Themes.insert(info.theme,(error, result) => {
                   if(error){
                     throw error;
                   }
