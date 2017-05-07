@@ -88,12 +88,9 @@ const schema = [`
 
   type File {
     _id: String
-  	index:Int
-  	ownerId: String
-  	owner: User
-  	filename:String
-  	filetype : String
-  	link : String
+    file: String
+    type: String
+    fileName: String
   }
 
   type MemberReply {

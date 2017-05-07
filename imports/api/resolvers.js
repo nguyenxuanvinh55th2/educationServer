@@ -1093,6 +1093,7 @@ const resolveFunctions = {
           }
           else {
             let docData = info.files;
+            let imageData = {};
             __.forEach(docData, (content, key)=>{
                 if(content.fileName){
                     imageData[key] = content;
@@ -1356,7 +1357,7 @@ const resolveFunctions = {
     },
     files: ({files}) => {
       if(files && files[0]){
-        return Files.find({_id:{$in:model.images}}).each().map((img)=>{
+        return Files.find({_id:{$in:files}}).each().map((img)=>{
                 return {
                   _id: img._id,
                   file: img.link(),
