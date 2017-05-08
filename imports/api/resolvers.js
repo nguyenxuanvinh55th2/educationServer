@@ -1054,6 +1054,7 @@ const resolveFunctions = {
       let user = Meteor.users.findOne({accessToken: token});
       if(user) {
         let player = Players.findOne({userId: user._id});
+        console.log('player ', player);
         if(player) {
           answer = [answer];
           let userExam = UserExams.findOne({examId, playerId: player._id});
