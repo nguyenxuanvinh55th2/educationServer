@@ -35,7 +35,11 @@ const schema = [`
     score: Int,
     isCorrect: Boolean
   }
-
+  type AccountingObject {
+    _id: String
+    objectId: String
+    isClassSubject: Boolean
+  }
   type ClassSubject {
   	_id: String
     name: String
@@ -47,6 +51,7 @@ const schema = [`
   	isOpen: Boolean
   	publicActivity: Boolean
   	theme: [Theme]
+    roles: [String]
   }
 
   type Examination {
@@ -136,6 +141,7 @@ const schema = [`
     checkOutImage: [CheckOutImage]
     friendList: [String]
     userFriendsUser: [User]
+    childrents: [User]
   }
 
   type CheckOutImage {
@@ -211,12 +217,16 @@ const schema = [`
     teacher: User
     student: [User]
   }
-
+  type Profile {
+    _id: String
+    roles: [String]
+  }
   type Query {
     getInfoUser(token: String): String
     userChat(userId: String): [UserChat],
     userClass(userId: String): UserClass,
     classSubjectsByTeacher(token: String!): [ClassSubject],
+    classSubjectsByStudent(token: String!): [ClassSubject],
     users: [User],
     user(userId: String): User,
     getBackgroundList: [Background],
@@ -243,6 +253,7 @@ const schema = [`
     getActivityForum (classSubjectId: String): [Activity]
     getActivityAssignment (classSubjectId: String): [Activity]
     getActivityTheme (classSubjectId: String): [Activity]
+    getRolesUserClass(userId: String, objectId: String): Profile
   }
 
   type Mutation {

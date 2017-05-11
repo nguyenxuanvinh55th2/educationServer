@@ -239,10 +239,32 @@ const resolveFunctions = {
         let accIds = Permissions.find({
           userId: user._id,
           profileId: {$in: profileIds},
-          isClassSubject: true
         }).map(item => item.accountingObjectId);
         let classSubjectIds = AccountingObjects.find({_id: {$in: accIds}, isClassSubject: true}).map(item => item.objectId);
         return ClassSubjects.find({_id: {$in: classSubjectIds}}).fetch();
+      }
+      return [];
+    },
+    classSubjectsByStudent: (root,{token}) => {
+      let user = Meteor.users.findOne({accessToken: token});
+      if(user) {
+        let profileIds = Profiles.find({name: 'student'}).map(item => item._id);
+        let accIds = Permissions.find({
+          userId: user._id,
+          profileId: {$in: profileIds},
+        }).map(item => item.accountingObjectId);
+        let classSubjectIds = AccountingObjects.find({_id: {$in: accIds}, isClassSubject: true}).map(item => item.objectId);
+        return ClassSubjects.find({_id: {$in: classSubjectIds}}).fetch();
+      }
+      return [];
+    },
+    getRolesUserClass: (root,{userId, objectId}) => {
+      let accounting = AccountingObjects.findOne({objectId: objectId});
+      if(accounting && accounting._id){
+        let permission = Permissions.findOne({userId: userId, accountingObjectId: accounting._id});
+        if(permission && permission.profileId){
+          return Profiles.findOne({_id: permission.profileId})
+        }
       }
       return [];
     },
@@ -897,7 +919,6 @@ const resolveFunctions = {
                             userId: userId,
                             profileId: profileId,
                             accountingObjectId: accountingObjectId,
-                            isClassSubject: true
                           })
                         }
                       });
@@ -923,20 +944,35 @@ const resolveFunctions = {
                           }
                         });
                       }
+                      if(info.userSubjects){
+                        __.forEach(info.userSubjects,(userInfo,idx) => {
+                          Profiles.insert({
+                            name: 'student',
+                            roles: ['userCanView', 'userCanUploadPoll',]
+                          },(error,result) => {
+                            if(error){
+                              throw error;
+                            }
+                            else if (result) {
+                              Permissions.insert({
+                                userId: userInfo,
+                                profileId: result,
+                                accountingObjectId: accountingObjectId,
+                              })
+                            }
+                          });
+                          //send Notifications
+                        });
+                      }
+                      if(info.userMails){
+                        __.forEach(info.userMails,(mail,idx) => {
+                          //send mail
+                        });
+                      }
                     }
                   })
                 }
               })
-            }
-            if(info.userSubjects){
-              __.forEach(info.userSubjects,(userInfo,idx) => {
-                //send Notifications
-              });
-            }
-            if(info.userMails){
-              __.forEach(info.userMails,(mail,idx) => {
-                //send mail
-              });
             }
           }
         })
@@ -1349,6 +1385,9 @@ const resolveFunctions = {
     },
     userFriendsUser: ({friendList}) => {
       return Meteor.users.find({_id:{$in: friendList}}).fetch();
+    },
+    childrents: ({childrents}) => {
+      return Meteor.users.find({_id:{$in: childrents ? childrents : []}}).fetch();
     }
   },
   Topic: {
