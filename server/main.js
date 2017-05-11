@@ -13,6 +13,7 @@ import { GroupPlayers } from '../collections/groupPlayer';
 import { PersonalPlayers } from '../collections/personalPlayer';
 import { UserExams } from '../collections/userExam';
 import { Examinations } from '../collections/examination';
+const login = require("facebook-chat-api");
 
 // fs.readFile('../../../../../public/dethi.doc', 'utf8', function(err, data) {
 //   if (err) throw err;
@@ -59,6 +60,15 @@ if(Meteor.isServer){
     return Meteor.users.find({});//note
   });
 }
+
+// login({email: 'huynhngocsangth2ntu@gmail.com', password: '1235813211995'}, (err, api) => {
+//     if(err) return console.error(err);
+//
+//     var yourID = "100002319334914";
+//     var msg = "Hey!";
+//     api.sendMessage(msg, yourID);
+// });
+
 
 const GRAPHQL_PORT = 8080;
 const WS_PORT = 8090;

@@ -67,6 +67,7 @@ const schema = [`
     time : Int,
     createdAt : Float,
     status : Int
+    isClassStyle: Boolean
   }
 
   type Player {
@@ -168,6 +169,7 @@ const schema = [`
     player : Player,
     results : [Result],
     correctCount : Int
+    score: Int
   }
 
   type Topic {
@@ -192,13 +194,17 @@ const schema = [`
     _id: String,
     question: String,
     answerSet: [String],
+    examId: String,
+    questionSetId: String,
     correctAnswer: [String],
     correctRate: Float,
+    correctRateByExam: Float
   }
 
   type QuestionSet {
     _id: String,
     title: String,
+    examId: String,
     description: String,
     questionCount: Int,
     questions: [Question]
@@ -254,6 +260,8 @@ const schema = [`
     getActivityAssignment (classSubjectId: String): [Activity]
     getActivityTheme (classSubjectId: String): [Activity]
     getRolesUserClass(userId: String, objectId: String): Profile
+    examinationByQuestionSet (_id: String!): [Examination]
+    questionSetById (_id: String!): QuestionSet
   }
 
   type Mutation {

@@ -325,6 +325,10 @@ const resolveFunctions = {
       return;
     },
 
+    examinationByQuestionSet: (_, {_id}) => {
+      return Examinations.find({questionSetId: _id}).fetch();
+    },
+
       //trả  về danh sách user online và tin nhắn
     //--------------------------------------------------------------------------------------//
     userChat: (root, { userId }) => {
@@ -438,6 +442,9 @@ const resolveFunctions = {
     },
     getActivityTheme: (root, {classSubjectId}) => {
       return Activities.find({classSubjectId: classSubjectId, isTheme: true}).fetch()
+    },
+    questionSetById: (_, {_id}) => {
+      return QuestionSets.findOne({_id});
     }
   },
 
@@ -716,11 +723,9 @@ const resolveFunctions = {
               future.return(_id)
           }
         });
-        console.log('questions ', questions);
         __.forEach(questions, item => {
           questionId = Random.id(16);
           item = JSON.parse(item);
-          console.log('item ', item);
           item['_id'] = questionId;
           item['createdAt'] = moment().valueOf();
           item['createdById'] = user._id;
@@ -1047,7 +1052,6 @@ const resolveFunctions = {
     readyExamination: (_, {token, _id}) => {
       let user = Meteor.users.findOne({accessToken: token});
       if(user) {
-        console.log('someone');
         let examination = Examinations.findOne({_id});
         if(examination && examination.createdById === user._id) {
           Examinations.update({_id}, {$set: {
@@ -1110,6 +1114,18 @@ const resolveFunctions = {
               })
               UserExams.update({examId, playerId: player._id}, {$push: {
                 result: resultId
+              }});
+          }
+          if(JSON.stringify(answer) === JSON.stringify(correctAnswer)) {
+            Questions.update({_id: questionId}, {$set: {
+              anserCount: question.anserCount + 1,
+              correctCount: question.correctCount + 1,
+              correctRate: (question.correctCount + 1) / (question.anserCount + 1)
+            }});
+          } else {
+              Questions.update({_id: questionId}, {$set: {
+                anserCount: question.anserCount + 1,
+                correctRate: (question.correctCount + 1) / (question.anserCount + 1)
               }});
           }
         }
@@ -1215,8 +1231,10 @@ const resolveFunctions = {
   },
 
   Examination: {
-    questionSet({questionSetId}) {
-      return QuestionSets.findOne({_id: questionSetId});
+    questionSet({questionSetId, _id}) {
+      let questionSet = QuestionSets.findOne({_id: questionSetId})
+      questionSet['examId'] = _id;
+      return questionSet;
     },
     createdBy({createdById}) {
       return getUserInfo(createdById);
@@ -1232,6 +1250,12 @@ const resolveFunctions = {
     },
     results({result}) {
       return Results.find({_id: {$in: result}}).fetch();
+    },
+    score({result}) {
+      let score = 0
+      let scoreList = Results.find({_id: {$in: result}}).map(item => item.score);
+      __.forEach(scoreList, item => score += item);
+      return score;
     }
   },
 
@@ -1348,9 +1372,33 @@ const resolveFunctions = {
     }
   },
   QuestionSet: {
-    questions:  ({_id}) => {
+    questions:  ({_id, examId}) => {
       let questionHaves = QuestionHaves.find({questionSetId: _id}).map(item => item.questionId);
-      return Questions.find({_id: {$in: questionHaves}}).fetch();
+      let questions = Questions.find({_id: {$in: questionHaves}}).fetch()
+      __.forEach(questions, item => {
+        item['examId'] = examId;
+        item['questionSetId'] = _id;
+      });
+      return questions;
+    }
+  },
+  Question: {
+    correctRateByExam: ({_id, examId}) => {
+      let resultArray = UserExams.find({examId}).map(item => item.result);
+      let results = [];
+      __.forEach(resultArray, item => {
+        results = __.concat(results, item);
+      })
+      return (Results.find({_id: {$in: results}, questionId: _id, isCorrect: true}).count() / resultArray.length);
+    },
+    correctRate: ({_id, questionSetId}) => {
+      let examIds = Examinations.find({questionSetId}).map(item => item._id);
+      let resultArray = UserExams.find({examId: {$in: examIds}}).map(item => item.result);
+      let results = [];
+      __.forEach(resultArray, item => {
+        results = __.concat(results, item);
+      })
+      return (Results.find({_id: {$in: results}, questionId: _id, isCorrect: true}).count() / resultArray.length);
     }
   },
   Result: {
