@@ -78,6 +78,34 @@ import { Accounts } from 'meteor/accounts-base';
 __     = require('lodash');
 moment = require('moment');
 Meteor.startup(function () {
+  // Meteor.users.insert({
+  //     _id: '1',
+  //     username: 'vinhict',
+  //     emails: [
+  //         {
+  //             address: 'nguyenxuanvinhict@gmail.com',
+  //             verified: true
+  //         }
+  //     ],
+  //     profile:{
+  //         permissions: []
+  //     }
+  // });
+  // Accounts.setPassword('1', '12345678');
+  // Meteor.users.insert({
+  //     _id: '2',
+  //     username: 'th2ict',
+  //     emails: [
+  //         {
+  //             address: 'nguyenxuanvinh55th2ICT@gmail.com',
+  //             verified: true
+  //         }
+  //     ],
+  //     profile:{
+  //         permissions: []
+  //     }
+  // });
+  // Accounts.setPassword('2', '12345678');
     if (Meteor.users.find({}).count() === 0) {
         Meteor.users.insert({
             _id: '0',

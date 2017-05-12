@@ -35,7 +35,11 @@ const schema = [`
     score: Int,
     isCorrect: Boolean
   }
-
+  type AccountingObject {
+    _id: String
+    objectId: String
+    isClassSubject: Boolean
+  }
   type ClassSubject {
   	_id: String
     name: String
@@ -47,6 +51,7 @@ const schema = [`
   	isOpen: Boolean
   	publicActivity: Boolean
   	theme: [Theme]
+    roles: [String]
   }
 
   type Examination {
@@ -89,21 +94,18 @@ const schema = [`
 
   type File {
     _id: String
-  	index:Int
-  	ownerId: String
-  	owner: User
-  	filename:String
-  	filetype : String
-  	link : String
+    file: String
+    type: String
+    fileName: String
   }
 
   type MemberReply {
-  	_id:String,
-  	ownerId:String,
-  	owner: User,
-  	content: String,
-  	files:[File],
-  	createAt:String,
+  	_id:String
+  	ownerId:String
+  	owner: User
+  	content: String
+  	files:[File]
+  	createAt:String
   	index: String
   }
 
@@ -138,6 +140,9 @@ const schema = [`
   	online: Boolean,
   	lastLogin: String,
     checkOutImage: [CheckOutImage]
+    friendList: [String]
+    userFriendsUser: [User]
+    childrents: [User]
   }
 
   type CheckOutImage {
@@ -218,12 +223,16 @@ const schema = [`
     teacher: User
     student: [User]
   }
-
+  type Profile {
+    _id: String
+    roles: [String]
+  }
   type Query {
     getInfoUser(token: String): String
     userChat(userId: String): [UserChat],
     userClass(userId: String): UserClass,
     classSubjectsByTeacher(token: String!): [ClassSubject],
+    classSubjectsByStudent(token: String!): [ClassSubject],
     users: [User],
     user(userId: String): User,
     getBackgroundList: [Background],
@@ -250,6 +259,7 @@ const schema = [`
     getActivityForum (classSubjectId: String): [Activity]
     getActivityAssignment (classSubjectId: String): [Activity]
     getActivityTheme (classSubjectId: String): [Activity]
+    getRolesUserClass(userId: String, objectId: String): Profile
     examinationByQuestionSet (_id: String!): [Examination]
     questionSetById (_id: String!): QuestionSet
   }
@@ -284,6 +294,7 @@ const schema = [`
     startExamination(token: String!, _id: String!): String
     answerQuestion(token: String!, examId: String!, questionSetId: String!, questionId: String!, answer: String!): String
     finishExamination(token: String!, _id: String!): String
+    insertCommentForum(token: String!, info: String): String
   }
 
   type Subscription {

@@ -239,10 +239,32 @@ const resolveFunctions = {
         let accIds = Permissions.find({
           userId: user._id,
           profileId: {$in: profileIds},
-          isClassSubject: true
         }).map(item => item.accountingObjectId);
         let classSubjectIds = AccountingObjects.find({_id: {$in: accIds}, isClassSubject: true}).map(item => item.objectId);
         return ClassSubjects.find({_id: {$in: classSubjectIds}}).fetch();
+      }
+      return [];
+    },
+    classSubjectsByStudent: (root,{token}) => {
+      let user = Meteor.users.findOne({accessToken: token});
+      if(user) {
+        let profileIds = Profiles.find({name: 'student'}).map(item => item._id);
+        let accIds = Permissions.find({
+          userId: user._id,
+          profileId: {$in: profileIds},
+        }).map(item => item.accountingObjectId);
+        let classSubjectIds = AccountingObjects.find({_id: {$in: accIds}, isClassSubject: true}).map(item => item.objectId);
+        return ClassSubjects.find({_id: {$in: classSubjectIds}}).fetch();
+      }
+      return [];
+    },
+    getRolesUserClass: (root,{userId, objectId}) => {
+      let accounting = AccountingObjects.findOne({objectId: objectId});
+      if(accounting && accounting._id){
+        let permission = Permissions.findOne({userId: userId, accountingObjectId: accounting._id});
+        if(permission && permission.profileId){
+          return Profiles.findOne({_id: permission.profileId})
+        }
       }
       return [];
     },
@@ -410,7 +432,7 @@ const resolveFunctions = {
       return
     },
     user: (root, {userId}) => {
-      return getUserInfo(userId);
+      return Meteor.users.findOne({_id: userId});
     },
     getActivityForum: (root, {classSubjectId}) => {
       return Activities.find({classSubjectId: classSubjectId, isForum: true}).fetch()
@@ -902,7 +924,6 @@ const resolveFunctions = {
                             userId: userId,
                             profileId: profileId,
                             accountingObjectId: accountingObjectId,
-                            isClassSubject: true
                           })
                         }
                       });
@@ -928,20 +949,35 @@ const resolveFunctions = {
                           }
                         });
                       }
+                      if(info.userSubjects){
+                        __.forEach(info.userSubjects,(userInfo,idx) => {
+                          Profiles.insert({
+                            name: 'student',
+                            roles: ['userCanView', 'userCanUploadPoll',]
+                          },(error,result) => {
+                            if(error){
+                              throw error;
+                            }
+                            else if (result) {
+                              Permissions.insert({
+                                userId: userInfo,
+                                profileId: result,
+                                accountingObjectId: accountingObjectId,
+                              })
+                            }
+                          });
+                          //send Notifications
+                        });
+                      }
+                      if(info.userMails){
+                        __.forEach(info.userMails,(mail,idx) => {
+                          //send mail
+                        });
+                      }
                     }
                   })
                 }
               })
-            }
-            if(info.userSubjects){
-              __.forEach(info.userSubjects,(userInfo,idx) => {
-                //send Notifications
-              });
-            }
-            if(info.userMails){
-              __.forEach(info.userMails,(mail,idx) => {
-                //send mail
-              });
             }
           }
         })
@@ -1109,6 +1145,25 @@ const resolveFunctions = {
             throw error;
           }
           else {
+            let docData = info.files;
+            let imageData = {};
+            __.forEach(docData, (content, key)=>{
+                if(content.fileName){
+                    imageData[key] = content;
+                    imageData[key].file = content.file.replace(/^data:image\/(png|gif|jpeg);base64,/,'');
+                    content = '';
+                }
+            });
+            __.forEach(imageData, (img, key)=>{
+                buf = new Buffer(img.file, 'base64');
+                Files.write(buf, {fileName: img.fileName, type: img.type}, (err, fileRef)=>{
+                    if (err) {
+                      throw err;
+                    } else {
+                      Topics.update({ _id: result },{ $push: { files: fileRef._id }});
+                    }
+                }, true);
+            });
             let obActive = {
               topicId: result,
               classSubjectId: info.classSubjectId,
@@ -1123,8 +1178,8 @@ const resolveFunctions = {
               Activities.insert(obActive);
             }
             else if (info.data.isTheme) {
-              if(info.data.theme){
-                Themes.insert(info.data.theme,(error, result) => {
+              if(info.theme){
+                Themes.insert(info.theme,(error, result) => {
                   if(error){
                     throw error;
                   }
@@ -1139,6 +1194,21 @@ const resolveFunctions = {
           }
         });
       }
+      return ;
+    },
+    insertCommentForum: (_,{token, info}) => {
+      let user = Meteor.users.findOne({accessToken: token});
+      if(user) {
+        info = JSON.parse(info);
+        info.createdAt = moment().valueOf();
+        info.createdById = user._id;
+        info.ownerId = user._id;
+        return MemberReplys.insert(info,(error) => {
+            if(error){
+              throw error;
+            }
+          })
+        }
       return ;
     }
   },
@@ -1172,12 +1242,6 @@ const resolveFunctions = {
     },
     userExams({_id}) {
       return UserExams.find({examId: _id}).fetch();
-    }
-  },
-
-  User: {
-    checkOutImage({checkOutImage}) {
-      return checkOutImage;
     }
   },
 
@@ -1364,6 +1428,15 @@ const resolveFunctions = {
     },
     social: (root) => {
       return root.googleId ? 'https://plus.google.com/u/0/' + root.googleId + '/posts' : 'https://facebook.com/u/0/' + root.id;
+    },
+    checkOutImage: ({checkOutImage}) => {
+      return checkOutImage;
+    },
+    userFriendsUser: ({friendList}) => {
+      return Meteor.users.find({_id:{$in: friendList}}).fetch();
+    },
+    childrents: ({childrents}) => {
+      return Meteor.users.find({_id:{$in: childrents ? childrents : []}}).fetch();
     }
   },
   Topic: {
@@ -1372,7 +1445,7 @@ const resolveFunctions = {
     },
     files: ({files}) => {
       if(files && files[0]){
-        return Files.find({_id:{$in:model.images}}).each().map((img)=>{
+        return Files.find({_id:{$in:files}}).each().map((img)=>{
                 return {
                   _id: img._id,
                   file: img.link(),
@@ -1383,6 +1456,11 @@ const resolveFunctions = {
       }
       return [];
     },
+    owner: ({ownerId}) => {
+      return Meteor.users.findOne({_id: ownerId});
+    }
+  },
+  MemberReply: {
     owner: ({ownerId}) => {
       return Meteor.users.findOne({_id: ownerId});
     }
