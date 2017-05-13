@@ -144,46 +144,56 @@ Meteor.startup(function () {
    );
   })
 
-const graphQLServer = express().use('*', cors());
-
-//config graphql
-graphQLServer.use('/graphql', bodyParser.json(), graphqlExpress({
-  schema,
-  context: {},
-}));
-
-graphQLServer.use('/graphiql', graphiqlExpress({
-  endpointURL: '/graphql',
-}));
-
-graphQLServer.listen(GRAPHQL_PORT, () => console.log(
-  `GraphQL Server is now running on http://localhost:${GRAPHQL_PORT}/graphql`
-));
-
-// WebSocket server for subscriptions
-const websocketServer = createServer((request, response) => {
-  response.writeHead(404);
-  response.end();
-});
-
-websocketServer.listen(WS_PORT, () => console.log( // eslint-disable-line no-console
-  `Websocket Server is now running on http://localhost:${WS_PORT}`
-));
-
-new SubscriptionServer(
-  {
-   onConnect: async (connectionParams) => {
-     // Implement if you need to handle and manage connection
-   },
-   subscriptionManager: subscriptionManager
-  },
-  {
-   server: websocketServer
-  }
-);
+// const graphQLServer = express().use('*', cors());
+//
+// //config graphql
+// graphQLServer.use('/graphql', bodyParser.json(), graphqlExpress({
+//   schema,
+//   context: {},
+// }));
+//
+// graphQLServer.use('/graphiql', graphiqlExpress({
+//   endpointURL: '/graphql',
+// }));
+//
+// graphQLServer.listen(GRAPHQL_PORT, () => console.log(
+//   `GraphQL Server is now running on http://localhost:${GRAPHQL_PORT}/graphql`
+// ));
+//
+// // WebSocket server for subscriptions
+// const websocketServer = createServer((request, response) => {
+//   response.writeHead(404);
+//   response.end();
+// });
+//
+// websocketServer.listen(WS_PORT, () => console.log( // eslint-disable-line no-console
+//   `Websocket Server is now running on http://localhost:${WS_PORT}`
+// ));
+//
+// new SubscriptionServer(
+//   {
+//    onConnect: async (connectionParams) => {
+//      // Implement if you need to handle and manage connection
+//    },
+//    subscriptionManager: subscriptionManager
+//   },
+//   {
+//    server: websocketServer
+//   }
+// );
 
 Meteor.methods({
   getUserExam: (userIds) => {
     return Meteor.users.find({_id: {$in: userIds}}).fetch();
   }
 })
+
+
+//config not subscription
+import {createApolloServer} from 'meteor/apollo';
+createApolloServer({
+  schema,
+  graphiql: Meteor.isDevelopment,
+  pretty: true,
+  configServer: express().use('*', cors())
+});
