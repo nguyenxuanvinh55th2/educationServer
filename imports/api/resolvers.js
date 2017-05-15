@@ -618,6 +618,7 @@ const resolveFunctions = {
             var plaintext = decrypted.toString(CryptoJS.enc.Utf8);
             let result = Accounts._checkPassword(user, plaintext);
             if(result.error){
+              console.log('sai Pass');
                 throw result.error;
             } else {
                 let stampedLoginToken = Accounts._generateStampedLoginToken();
