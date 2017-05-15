@@ -259,6 +259,7 @@ const schema = [`
     getActivityForum (classSubjectId: String): [Activity]
     getActivityAssignment (classSubjectId: String): [Activity]
     getActivityTheme (classSubjectId: String): [Activity]
+    getUserByClassSucbject(classSubjectId: String): [User]
     getRolesUserClass(userId: String, objectId: String): Profile
     examinationByQuestionSet (_id: String!): [Examination]
     questionSetById (_id: String!): QuestionSet
