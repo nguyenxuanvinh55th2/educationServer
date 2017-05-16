@@ -654,7 +654,7 @@ const resolveFunctions = {
       );
     },
     loginWithPassword: (_, {username, password})=>{
-        let user = Meteor.users.findOne({username});
+        let user = Meteor.users.findOne({$or: [{username}, {emails: { $elemMatch: { address: username } }}]});
         if(user){
             var decrypted = CryptoJS.AES.decrypt(password, "def4ult");
             var plaintext = decrypted.toString(CryptoJS.enc.Utf8);
