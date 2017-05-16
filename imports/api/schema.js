@@ -295,6 +295,8 @@ const schema = [`
     answerQuestion(token: String!, examId: String!, questionSetId: String!, questionId: String!, answer: String!): String
     finishExamination(token: String!, _id: String!): String
     insertCommentForum(token: String!, info: String): String
+    updateCurrentQuestion(token: String!, info: String): String
+    register(info: String!): String
   }
 
   type Subscription {

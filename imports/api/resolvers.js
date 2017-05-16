@@ -7,10 +7,48 @@ var fs = require('fs');
 import { Players } from '../../collections/player'
 import { UserExams } from '../../collections/userExam'
 import { Examinations } from '../../collections/examination'
+import { Questions } from '../../collections/question'
 import Fiber from 'fibers';
 
 Future = Npm.require('fibers/future');
 import CryptoJS from "crypto-js";
+
+const sendEmail = (mailAddress, mailService) => {
+    VertificateCode = (Math.floor(Math.random()*99999) + 10000).toString();
+
+    //khởi tạo đối tượng mã hóa
+    var Cryptr = require('cryptr'),
+    cryptr = new Cryptr('ntuquiz123');
+
+    //mã hóa mật khẩu
+    var content;
+    if(mailService)
+      content = '{"code": ' + '"' + VertificateCode + '", ' + '"email": ' + '"' + 'huynhngocsangth2ntu@gmail.com' + '", ' + '"mailService": ' + mailService + '}';
+    else
+      content = '{"code": ' + '"' + VertificateCode + '", ' + '"email": ' + '"' + 'huynhngocsangth2ntu@gmail.com' + '"}';
+
+
+
+    //nội dung sau khi mã hóa
+    var encryptedString = cryptr.encrypt(content);
+
+    //chuyen huong den template
+    SSR.compileTemplate('emailText', Assets.getText("vertificateMail.html"));
+
+    //chuyen html
+    var html = SSR.render("emailText", {text:encryptedString, userId: 'abcedfghi'});
+
+    //nội dung mail
+    var email = {
+      to: 'huynhngocsangth2ntu@gmail.com',
+      from: 'sanghuynhnt95@gmail.com',
+      subject: "test email",
+      html: html
+    };
+
+    //gửi mail
+    Email.send(email);
+}
 
 const joinUserToClass = (userId, classId) => {
   let accId = Ramdom.id(16);
@@ -464,6 +502,10 @@ const resolveFunctions = {
         future.return();
       }
       return future.wait();
+    },
+    register: (_, {info}) => {
+      info = JSON.parse(info);
+      Accounts.createUser(info);
     },
     addClass: (_, {userId, classItem, subject, course}) => {
       let classId = Random.id(16);
@@ -1210,6 +1252,17 @@ const resolveFunctions = {
           })
         }
       return ;
+    },
+    updateCurrentQuestion: (_,{token, info}) => {
+      let user = Meteor.users.findOne({accessToken: token});
+      if(user) {
+        console.log('info ', info);
+        info = JSON.parse(info);
+        Questions.update({_id: 'currentQuestion'}, {$set: {
+          questionId: info._id
+        }})
+      }
+      return
     }
   },
 
