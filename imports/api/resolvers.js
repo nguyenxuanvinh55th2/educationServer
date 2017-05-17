@@ -1504,7 +1504,7 @@ const resolveFunctions = {
       return checkOutImage;
     },
     userFriendsUser: ({friendList}) => {
-      return Meteor.users.find({_id:{$in: friendList}}).fetch();
+      return Meteor.users.find({_id:{$in: friendList ? frinedList : []}}).fetch();
     },
     childrents: ({childrents}) => {
       return Meteor.users.find({_id:{$in: childrents ? childrents : []}}).fetch();
