@@ -13,6 +13,8 @@ import { GroupPlayers } from '../collections/groupPlayer';
 import { PersonalPlayers } from '../collections/personalPlayer';
 import { UserExams } from '../collections/userExam';
 import { Examinations } from '../collections/examination';
+import { CurrentQuestion } from '../collections/currentQuestion';
+import { Questions } from '../collections/question';
 const login = require("facebook-chat-api");
 
 // fs.readFile('../../../../../public/dethi.doc', 'utf8', function(err, data) {
@@ -59,6 +61,9 @@ if(Meteor.isServer){
   Meteor.publish('users', function(){
     return Meteor.users.find({});//note
   });
+  Meteor.publish('questions', function(){
+    return Questions.find({});//note
+  });
 }
 
 // login({email: 'huynhngocsangth2ntu@gmail.com', password: '1235813211995'}, (err, api) => {
@@ -78,6 +83,19 @@ import { Accounts } from 'meteor/accounts-base';
 __     = require('lodash');
 moment = require('moment');
 Meteor.startup(function () {
+  if(!Questions.findOne({_id: 'currentQuestion'})) {
+    Questions.insert({
+      _id : "currentQuestion",
+      questionId: "",
+      question : "",
+      answerSet : [],
+      correctAnswer : [],
+      isPublic : false,
+      subjectId : '',
+      createdAt : '',
+      createdById : '',
+    });
+  }
   // Meteor.users.insert({
   //     _id: '1',
   //     username: 'vinhict',
@@ -196,4 +214,37 @@ createApolloServer({
   graphiql: Meteor.isDevelopment,
   pretty: true,
   configServer: express().use('*', cors())
+});
+
+function validateEmail(email) {
+    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,3}))$/;
+    return re.test(email);
+}
+
+Accounts.validateNewUser(function (user) {
+  if(user.services.password) {
+    if (!user.emails[0].address || !validateEmail(user.emails[0].address))
+      throw new Meteor.Error(403, "Định dạng địa chỉ mail không đúng");
+    if(!user.profile.name || user.profile.name.length < 6)
+      throw new Meteor.Error(403, "Định dạng tên người dùng không đúng");
+    if (!user.profile.old || user.profile.old > 150 || user.profile.old < 7)
+      throw new Meteor.Error(403, "Định dạng tuổi không đúng");
+    if(!user.profile.address)
+      throw new Meteor.Error(403, "Định dạng địa chỉ không đúng");
+  }
+  return true;
+});
+
+Accounts.onCreateUser(function(options, user) {
+  if(user.services.password) {
+    user.profile = {};
+    user.profile.name = options.name;
+    user.profile.old = options.old;
+    user.profile.gender = options.gender;
+    user.profile.address = options.address;
+    user.profile.phone = options.phone;
+    user.profile.picture = 'images/icon-person-128.png';
+    user.friendList = []
+  }
+  return user;
 });
