@@ -500,6 +500,23 @@ const resolveFunctions = {
         return Meteor.users.find({_id: {$in: userIds}}).fetch();
       }
       return [];
+    },
+    getTeacherByClassSubject: (_,{classSubjectId}) => {
+      let userIds = [];
+      let accounting = AccountingObjects.findOne({objectId: classSubjectId});
+      if(accounting && accounting._id){
+        let permission = Permissions.find({accountingObjectId: accounting._id}).fetch();
+        if(permission && permission.length){
+          __.forEach(permission,(per) => {
+            let profile = Profiles.findOne({_id: per.profileId});
+            if(profile && profile.name && profile.name == 'teacher'){
+              userIds.push(per.userId);
+            }
+          })
+        }
+        return Meteor.users.find({_id: {$in: userIds}}).fetch();
+      }
+      return [];
     }
   },
 
