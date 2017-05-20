@@ -492,6 +492,40 @@ const resolveFunctions = {
     },
     questionSetById: (_, {_id}) => {
       return QuestionSets.findOne({_id});
+    },
+    getUserByClassSucbject: (root, {classSubjectId}) => {
+      let userIds = [];
+      let accounting = AccountingObjects.findOne({objectId: classSubjectId});
+      if(accounting && accounting._id){
+        let permission = Permissions.find({accountingObjectId: accounting._id}).fetch();
+        if(permission && permission.length){
+          __.forEach(permission,(per) => {
+            let profile = Profiles.findOne({_id: per.profileId});
+            if(profile && profile.name && profile.name == 'student'){
+              userIds.push(per.userId);
+            }
+          })
+        }
+        return Meteor.users.find({_id: {$in: userIds}}).fetch();
+      }
+      return [];
+    },
+    getTeacherByClassSubject: (_,{classSubjectId}) => {
+      let userIds = [];
+      let accounting = AccountingObjects.findOne({objectId: classSubjectId});
+      if(accounting && accounting._id){
+        let permission = Permissions.find({accountingObjectId: accounting._id}).fetch();
+        if(permission && permission.length){
+          __.forEach(permission,(per) => {
+            let profile = Profiles.findOne({_id: per.profileId});
+            if(profile && profile.name && profile.name == 'teacher'){
+              userIds.push(per.userId);
+            }
+          })
+        }
+        return Meteor.users.find({_id: {$in: userIds}}).fetch();
+      }
+      return [];
     }
   },
 
@@ -691,6 +725,7 @@ const resolveFunctions = {
             var plaintext = decrypted.toString(CryptoJS.enc.Utf8);
             let result = Accounts._checkPassword(user, plaintext);
             if(result.error){
+              console.log('sai Pass');
                 throw result.error;
             } else {
                 let stampedLoginToken = Accounts._generateStampedLoginToken();
@@ -1517,7 +1552,7 @@ const resolveFunctions = {
       return checkOutImage;
     },
     userFriendsUser: ({friendList}) => {
-      return Meteor.users.find({_id:{$in: friendList}}).fetch();
+      return Meteor.users.find({_id:{$in: friendList ? frinedList : []}}).fetch();
     },
     childrents: ({childrents}) => {
       return Meteor.users.find({_id:{$in: childrents ? childrents : []}}).fetch();
