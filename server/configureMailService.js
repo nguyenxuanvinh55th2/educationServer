@@ -32,8 +32,8 @@ if (Meteor.isServer) {
   Api.addRoute('imgs/hello12.jpg', {authRequired: false}, {
     get: function () {
       //return Articles.findOne(this.urlParams.id);
-      var query = Meteor.users.findOne({_id: this.request.query.id});
-      var userName = query.profile ? query.profile.name : query.services.google.name;
+      //var query = Meteor.users.findOne({_id: this.request.query.id});
+      //var userName = query.profile ? query.profile.name : query.services.google.name;
       console.log("user recieved mail");
       return {
         statusCode: 200,
