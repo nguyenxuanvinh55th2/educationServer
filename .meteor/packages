@@ -28,3 +28,5 @@ service-configuration@1.0.11
 react-meteor-data
 nimble:restivus
 apollo
+meteorhacks:ssr
+email@1.1.17_1

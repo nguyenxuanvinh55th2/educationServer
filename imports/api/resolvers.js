@@ -1,5 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { Random } from 'meteor/random';
+import { Email } from 'meteor/email';
+import { HTTP } from 'meteor/http'
 import moment from 'moment';
 import async from 'async';
 var fs = require('fs');
@@ -8,13 +10,20 @@ import { Players } from '../../collections/player'
 import { UserExams } from '../../collections/userExam'
 import { Examinations } from '../../collections/examination'
 import { Questions } from '../../collections/question'
+
 import Fiber from 'fibers';
 
 Future = Npm.require('fibers/future');
 import CryptoJS from "crypto-js";
 
-const sendEmail = (mailAddress, mailService) => {
-    VertificateCode = (Math.floor(Math.random()*99999) + 10000).toString();
+process.env.MAIL_URL = 'smtp://sanghuynhnt95@gmail.com:1235813211995@smtp.gmail.com:587/';
+
+var VertificateCode = '';
+
+const sendEmail = (mailAddress, VertificateCode, userId) => {
+    console.log('mailAddress ', mailAddress);
+
+    //VertificateCode = (Math.floor(Math.random()*99999) + 10000).toString();
 
     //khởi tạo đối tượng mã hóa
     var Cryptr = require('cryptr'),
@@ -22,10 +31,10 @@ const sendEmail = (mailAddress, mailService) => {
 
     //mã hóa mật khẩu
     var content;
-    if(mailService)
-      content = '{"code": ' + '"' + VertificateCode + '", ' + '"email": ' + '"' + 'huynhngocsangth2ntu@gmail.com' + '", ' + '"mailService": ' + mailService + '}';
-    else
-      content = '{"code": ' + '"' + VertificateCode + '", ' + '"email": ' + '"' + 'huynhngocsangth2ntu@gmail.com' + '"}';
+    // if(mailService)
+    //   content = '{"code": ' + '"' + '0123456' + '", ' + '"email": ' + '"' + 'huynhngocsangth2ntu@gmail.com' + '", ' + '"mailService": ' + mailService + '}';
+    // else
+      content = '{"code": ' + '"' + VertificateCode + '", ' + '"email": ' + '"' + mailAddress + '"}';
 
 
 
@@ -36,11 +45,11 @@ const sendEmail = (mailAddress, mailService) => {
     SSR.compileTemplate('emailText', Assets.getText("vertificateMail.html"));
 
     //chuyen html
-    var html = SSR.render("emailText", {text:encryptedString, userId: 'abcedfghi'});
+    var html = SSR.render("emailText", {text:encryptedString, userId: userId});
 
     //nội dung mail
     var email = {
-      to: 'huynhngocsangth2ntu@gmail.com',
+      to: mailAddress,
       from: 'sanghuynhnt95@gmail.com',
       subject: "test email",
       html: html
@@ -539,7 +548,29 @@ const resolveFunctions = {
     },
     register: (_, {info}) => {
       info = JSON.parse(info);
+      let VertificateCode = (Math.floor(Math.random()*99999) + 10000).toString();
+      info['vertificateCode'] = VertificateCode;
       Accounts.createUser(info);
+      let user = Meteor.users.findOne({username: info.username});
+      sendEmail(info.email, VertificateCode, user._id);
+      return;
+    },
+    authenticateUser: (_,{token, info}) => {
+      let user = Meteor.users.findOne({accessToken: token});
+      console.log("message ", info);
+      if(user) {
+        info = JSON.parse(info);
+        console.log("info ", user._id);
+        if(info.code === user.vertificateCode) {
+            Meteor.users.update({'_id': user._id, 'emails.address': user.emails[0].address}, {$set: {'emails.$.verified': true}});
+        }
+      }
+    },
+    getExistUserName: (_, {value}) => {
+      return Meteor.users.findOne({username: value});
+    },
+    getExistEmail: (_, {value}) => {
+      return Meteor.users.findOne({$or: [{emails: { $elemMatch: { address: value } }}, {'profileObj.email': value}, {email: value}]});
     },
     addClass: (_, {userId, classItem, subject, course}) => {
       let classId = Random.id(16);

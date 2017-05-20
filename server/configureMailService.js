@@ -29,7 +29,7 @@ if (Meteor.isServer) {
   // });
 
   // Maps to: /api/articles/:id
-  Api.addRoute('images/icon-person-128.png', {authRequired: false}, {
+  Api.addRoute('imgs/hello12.jpg', {authRequired: false}, {
     get: function () {
       //return Articles.findOne(this.urlParams.id);
       var query = Meteor.users.findOne({_id: this.request.query.id});
@@ -38,7 +38,7 @@ if (Meteor.isServer) {
       return {
         statusCode: 200,
         headers: {
-          'Content-Type': 'image/png',
+          'Content-Type': 'image/jpg',
           'Cache-Control': 'no-cache, max-age=0'
         }
       }
