@@ -297,6 +297,9 @@ const schema = [`
     insertCommentForum(token: String!, info: String): String
     updateCurrentQuestion(token: String!, info: String): String
     register(info: String!): String
+    authenticateUser(token: String!, info: String!): String
+    getExistUserName(value: String!): User
+    getExistEmail(value: String!): User
   }
 
   type Subscription {
