@@ -843,7 +843,11 @@ const resolveFunctions = {
             score: item.score
           })
           delete item.score
-          Questions.insert(item);
+          Questions.insert(item, (err) => {
+            if(err) {
+              console.log("message ", err);
+            }
+          });
         });
         return future.wait();
       }

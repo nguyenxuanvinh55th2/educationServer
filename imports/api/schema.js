@@ -198,7 +198,13 @@ const schema = [`
     questionSetId: String,
     correctAnswer: [String],
     correctRate: Float,
-    correctRateByExam: Float
+    correctRateByExam: Float,
+    file: QuestionFile
+  }
+
+  type QuestionFile {
+    link: String,
+    type: String
   }
 
   type QuestionSet {
