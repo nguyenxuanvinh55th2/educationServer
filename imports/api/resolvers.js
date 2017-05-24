@@ -292,8 +292,8 @@ const resolveFunctions = {
       }
       return [];
     },
-    classSubjectsByStudent: (root,{token}) => {
-      let user = Meteor.users.findOne({accessToken: token});
+    classSubjectsByStudent: (root,{userId}) => {
+      let user = Meteor.users.findOne({_id: userId});
       if(user) {
         let profileIds = Profiles.find({name: 'student'}).map(item => item._id);
         let accIds = Permissions.find({

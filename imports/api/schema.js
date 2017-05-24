@@ -232,7 +232,7 @@ const schema = [`
     userChat(userId: String): [UserChat],
     userClass(userId: String): UserClass,
     classSubjectsByTeacher(token: String!): [ClassSubject],
-    classSubjectsByStudent(token: String!): [ClassSubject],
+    classSubjectsByStudent(userId: String!): [ClassSubject],
     users: [User],
     user(userId: String): User,
     getBackgroundList: [Background],
