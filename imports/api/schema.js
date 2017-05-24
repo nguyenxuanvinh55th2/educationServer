@@ -264,6 +264,7 @@ const schema = [`
     examinationByQuestionSet (_id: String!): [Examination]
     questionSetById (_id: String!): QuestionSet,
     getTeacherByClassSubject(classSubjectId: String): [User]
+    getAllPlayperExamByUser(userId: String): [Examination]
   }
 
   type Mutation {

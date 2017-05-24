@@ -526,6 +526,12 @@ const resolveFunctions = {
         return Meteor.users.find({_id: {$in: userIds}}).fetch();
       }
       return [];
+    },
+    getAllPlayperExamByUser: (_,{userId}) => {
+      let players = Players.find({userId: userId}).map((item) => item._id);
+      if(players.length){
+        return Examinations.find({_id: UserExams.find({id: {$in: players}}).map((item) => item.examId)}).fetch();
+      }
     }
   },
 
@@ -1472,8 +1478,32 @@ const resolveFunctions = {
     class({classId}) {
       return Classes.findOne({_id: classId});
     },
-    teacher({teacherId}) {
-      return Meteor.users.findOne({_id: teacherId});
+   teacher({_id}) {
+     let future = new Future();
+      let accounting = AccountingObjects.findOne({objectId: _id});
+      if(accounting){
+        let permission = Permissions.find({accountingObjectId: accounting._id}).fetch();
+        if(permission && permission.length){
+          let flat = false;
+          __.forEach(permission,(per) => {
+            let profile = Profiles.findOne({_id: per.profileId});
+            if(profile && profile.name && profile.name == 'teacher'){
+              flat = true;
+              future.return(Meteor.users.findOne({_id: '0'}));
+            }
+          })
+          if(!flat){
+            future.return({});
+          }
+        }
+        else {
+          future.return({});
+        }
+      }
+      else {
+        future.return({});
+      }
+     return future.wait();
     }
   },
 
