@@ -530,8 +530,11 @@ const resolveFunctions = {
     getAllPlayperExamByUser: (_,{userId}) => {
       let players = Players.find({userId: userId}).map((item) => item._id);
       if(players.length){
-        return Examinations.find({_id: UserExams.find({id: {$in: players}}).map((item) => item.examId)}).fetch();
+        return Examinations.find({_id: {$in: UserExams.find({playerId: {$in: players}}).map((item) => item.examId)}}).fetch();
       }
+    },
+    getInfoClassSubject: (_, { classSubjectId }) => {
+      return ClassSubjects.findOne({_id: classSubjectId})
     }
   },
 
