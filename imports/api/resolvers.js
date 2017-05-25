@@ -556,6 +556,8 @@ const resolveFunctions = {
       info = JSON.parse(info);
       let VertificateCode = (Math.floor(Math.random()*99999) + 10000).toString();
       info['vertificateCode'] = VertificateCode;
+      info.frinedList =[];
+      info.childrents = [];
       Accounts.createUser(info);
       let user = Meteor.users.findOne({username: info.username});
       sendEmail(info.email, VertificateCode, user._id);

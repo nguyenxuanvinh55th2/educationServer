@@ -184,7 +184,9 @@ Meteor.startup(function () {
             ],
             profile:{
                 permissions: []
-            }
+            },
+            friendList: [],
+            childrents: []
         });
         Accounts.setPassword('0', '12345678');
     }
