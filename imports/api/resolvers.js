@@ -535,6 +535,11 @@ const resolveFunctions = {
     },
     getInfoClassSubject: (_, { classSubjectId }) => {
       return ClassSubjects.findOne({_id: classSubjectId})
+    },
+    getAllUserFriendInClass: (_, {userIds}) => {
+      let future = new Future();
+      future.return(Meteor.users.find({_id: {$in: userIds}}).fetch());
+      return future.wait();
     }
   },
 
