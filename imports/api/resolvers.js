@@ -337,15 +337,15 @@ const resolveFunctions = {
       return classItem;
     },
     questionSetBankUser: (root, { userId }) => {
-      return QuestionSets.find({'createdById' : userId}).fetch();
+      return QuestionSets.find({'createdById' : userId}, {createAt: -1}).fetch();
     },
 
     questionSetBankPublic: (root, { userId }) => {
-      return QuestionSets.find({isPublic: true}).fetch();
+      return QuestionSets.find({isPublic: true}, {createAt: -1}).fetch();
     },
 
     questionBank: () => {
-      return Questions.find({isPublic: true}).fetch();
+      return Questions.find({isPublic: true}, {createAt: -1}).fetch();
     },
 
     questionByExam: (_, {examId}) => {
@@ -373,7 +373,7 @@ const resolveFunctions = {
     },
 
     examinationByQuestionSet: (_, {_id}) => {
-      return Examinations.find({questionSetId: _id}).fetch();
+      return Examinations.find({questionSetId: _id}, {createAt: -1}).fetch();
     },
 
       //trả  về danh sách user online và tin nhắn
@@ -851,6 +851,22 @@ const resolveFunctions = {
         });
         return future.wait();
       }
+    },
+    removeQuestionSet: (_, {token, _id}) => {
+      let user = Meteor.users.findOne({accessToken: token});
+      console.log('_id ', _id);
+      if(user) {
+        return QuestionSets.remove({_id});
+      }
+      return;
+    },
+    removeExamination: (_, {token, _id}) => {
+      let user = Meteor.users.findOne({accessToken: token});
+      console.log('_id ', _id);
+      if(user) {
+        return Examinations.remove({_id});
+      }
+      return;
     },
     addQuestionFromFile: (_, {token, questionSet, questionFile}) => {
       let user = Meteor.users.findOne({accessToken: token});

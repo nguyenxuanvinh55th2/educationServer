@@ -308,6 +308,8 @@ const schema = [`
     authenticateUser(token: String!, info: String!): String
     getExistUserName(value: String!): User
     getExistEmail(value: String!): User
+    removeQuestionSet(token: String!, _id: String): String
+    removeExamination(token: String!, _id: String): String
   }
 
   type Subscription {
