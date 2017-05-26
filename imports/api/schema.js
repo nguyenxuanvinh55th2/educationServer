@@ -238,7 +238,7 @@ const schema = [`
     userChat(userId: String): [UserChat],
     userClass(userId: String): UserClass,
     classSubjectsByTeacher(token: String!): [ClassSubject],
-    classSubjectsByStudent(token: String!): [ClassSubject],
+    classSubjectsByStudent(userId: String!): [ClassSubject],
     users: [User],
     user(userId: String): User,
     getBackgroundList: [Background],
@@ -270,6 +270,9 @@ const schema = [`
     examinationByQuestionSet (_id: String!): [Examination]
     questionSetById (_id: String!): QuestionSet,
     getTeacherByClassSubject(classSubjectId: String): [User]
+    getAllPlayperExamByUser(userId: String): [Examination]
+    getInfoClassSubject(classSubjectId: String): ClassSubject
+    getAllUserFriendInClass(userIds: [String]): [User]
   }
 
   type Mutation {

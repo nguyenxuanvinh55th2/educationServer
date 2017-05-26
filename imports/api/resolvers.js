@@ -292,8 +292,8 @@ const resolveFunctions = {
       }
       return [];
     },
-    classSubjectsByStudent: (root,{token}) => {
-      let user = Meteor.users.findOne({accessToken: token});
+    classSubjectsByStudent: (root,{userId}) => {
+      let user = Meteor.users.findOne({_id: userId});
       if(user) {
         let profileIds = Profiles.find({name: 'student'}).map(item => item._id);
         let accIds = Permissions.find({
@@ -526,6 +526,20 @@ const resolveFunctions = {
         return Meteor.users.find({_id: {$in: userIds}}).fetch();
       }
       return [];
+    },
+    getAllPlayperExamByUser: (_,{userId}) => {
+      let players = Players.find({userId: userId}).map((item) => item._id);
+      if(players.length){
+        return Examinations.find({_id: {$in: UserExams.find({playerId: {$in: players}}).map((item) => item.examId)}}).fetch();
+      }
+    },
+    getInfoClassSubject: (_, { classSubjectId }) => {
+      return ClassSubjects.findOne({_id: classSubjectId})
+    },
+    getAllUserFriendInClass: (_, {userIds}) => {
+      let future = new Future();
+      future.return(Meteor.users.find({_id: {$in: userIds}}).fetch());
+      return future.wait();
     }
   },
 
@@ -550,6 +564,8 @@ const resolveFunctions = {
       info = JSON.parse(info);
       let VertificateCode = (Math.floor(Math.random()*99999) + 10000).toString();
       info['vertificateCode'] = VertificateCode;
+      info.frinedList =[];
+      info.childrents = [];
       Accounts.createUser(info);
       let user = Meteor.users.findOne({username: info.username});
       sendEmail(info.email, VertificateCode, user._id);
@@ -1492,8 +1508,32 @@ const resolveFunctions = {
     class({classId}) {
       return Classes.findOne({_id: classId});
     },
-    teacher({teacherId}) {
-      return Meteor.users.findOne({_id: teacherId});
+   teacher({_id}) {
+     let future = new Future();
+      let accounting = AccountingObjects.findOne({objectId: _id});
+      if(accounting){
+        let permission = Permissions.find({accountingObjectId: accounting._id}).fetch();
+        if(permission && permission.length){
+          let flat = false;
+          __.forEach(permission,(per) => {
+            let profile = Profiles.findOne({_id: per.profileId});
+            if(profile && profile.name && profile.name == 'teacher'){
+              flat = true;
+              future.return(Meteor.users.findOne({_id: '0'}));
+            }
+          })
+          if(!flat){
+            future.return({});
+          }
+        }
+        else {
+          future.return({});
+        }
+      }
+      else {
+        future.return({});
+      }
+     return future.wait();
     }
   },
 
@@ -1572,7 +1612,7 @@ const resolveFunctions = {
       return checkOutImage;
     },
     userFriendsUser: ({friendList}) => {
-      return Meteor.users.find({_id:{$in: friendList ? frinedList : []}}).fetch();
+      return Meteor.users.find({_id:{$in: friendList ? friendList : []}}).fetch();
     },
     childrents: ({childrents}) => {
       return Meteor.users.find({_id:{$in: childrents ? childrents : []}}).fetch();

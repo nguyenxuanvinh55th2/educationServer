@@ -22,7 +22,7 @@ import { Questions } from '../collections/question';
 import './configureMailService';
 const login = require("facebook-chat-api");
 
-// process.env.MAIL_URL = 'smtp://sanghuynhnt95@gmail.com:1235813211995@smtp.gmail.com:587/';
+process.env.MAIL_URL = 'smtp://sanghuynhnt95@gmail.com:1235813211995@smtp.gmail.com:587/';
 //
 // var VertificateCode = '';
 //
@@ -184,7 +184,9 @@ Meteor.startup(function () {
             ],
             profile:{
                 permissions: []
-            }
+            },
+            friendList: [],
+            childrents: []
         });
         Accounts.setPassword('0', '12345678');
     }
