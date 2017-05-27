@@ -1392,7 +1392,7 @@ const resolveFunctions = {
       else {
         future.return('')
       }
-      future.await();
+      return future.wait();
     }
   },
 
