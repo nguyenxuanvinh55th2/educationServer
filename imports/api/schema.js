@@ -43,6 +43,7 @@ const schema = [`
   type ClassSubject {
   	_id: String
     name: String
+    code: String
     teacher: User
   	subject: Subject
     class: Class
@@ -313,6 +314,7 @@ const schema = [`
     getExistEmail(value: String!): User
     removeQuestionSet(token: String!, _id: String): String
     removeExamination(token: String!, _id: String): String
+    checkCodeUser(userId: String, code: String): String
   }
 
   type Subscription {
