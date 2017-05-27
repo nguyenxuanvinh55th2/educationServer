@@ -886,6 +886,7 @@ const resolveFunctions = {
     },
     addQuestionFromFile: (_, {token, questionSet, questionFile}) => {
       let user = Meteor.users.findOne({accessToken: token});
+      console.log("message ", questionFile);
       if(user) {
         questionSet = JSON.parse(questionSet);
         let future = new Future();
@@ -910,6 +911,8 @@ const resolveFunctions = {
         for(i = 0; i < array.length - 1; i++) {
           let questionId = Random.id(16);
           if(array[i].indexOf('Câu') > -1) {
+            let index = array[i].indexOf('//');
+            array[i].replace(S.substring(0, index), "");
             let question = {
               _id: questionId,
               question: array[i],
@@ -943,6 +946,10 @@ const resolveFunctions = {
         return future.wait();
       }
       return;
+    },
+    searchUser: (_,{keyWord}) => {
+      let codition = {$regex: keyWord, $options: 'iu'};
+      return Meteor.users.find({$or: [{'username': codition}, {'name': codition}, {'profileObj.name': codition}]}).map(item => getUserInfo(item._id));
     },
     insertQuestionFromBank: (_, {token, questionSet, questions}) => {
       var hashedToken = Accounts._hashLoginToken(token);

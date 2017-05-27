@@ -313,6 +313,7 @@ const schema = [`
     getExistEmail(value: String!): User
     removeQuestionSet(token: String!, _id: String): String
     removeExamination(token: String!, _id: String): String
+    searchUser(keyWord: String!): [User]
   }
 
   type Subscription {
