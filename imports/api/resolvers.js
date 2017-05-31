@@ -16,7 +16,7 @@ import Fiber from 'fibers';
 Future = Npm.require('fibers/future');
 import CryptoJS from "crypto-js";
 
-process.env.MAIL_URL = 'smtp://sanghuynhnt95@gmail.com:1235813211995@smtp.gmail.com:587/';
+process.env.MAIL_URL = 'smtp://tuielearning@gmail.com:elearning@smtp.gmail.com:587/';
 
 var VertificateCode = '';
 
@@ -1047,6 +1047,7 @@ const resolveFunctions = {
             if(info.joinCourse && info.classId && info.classSubject.courseId){
               info.classSubject.subjectId = subjectId;
               info.classSubject.classId = info.classId;
+              info.classSubject.code = (Math.floor(Math.random()*99999) + 10000).toString();
               ClassSubjects.insert(info.classSubject,(error,result) => {
                 if(error){
                   throw error;
@@ -1372,6 +1373,33 @@ const resolveFunctions = {
         }})
       }
       return
+    },
+    checkCodeUser: (_, {userId, code}) => {
+      let future = new Future();
+      let classSubject = ClassSubjects.findOne({code: code});
+      if(classSubject){
+        Profiles.insert({
+          name: 'student',
+          roles: ['userCanView', 'userCanUploadPoll',]
+        },(error,result) => {
+          if(error){
+            throw error;
+            future.return('')
+          }
+          else if (result) {
+            Permissions.insert({
+              userId: userId,
+              profileId: result,
+              accountingObjectId: classSubject._id,
+            });
+            future.return(classSubject._id);
+          }
+        });
+      }
+      else {
+        future.return('')
+      }
+      future.await();
     }
   },
 
