@@ -1292,6 +1292,7 @@ const resolveFunctions = {
         info.data.createdAt = moment().valueOf();
         info.data.createdById = user._id;
         info.data.ownerId = user._id;
+        // info.data.files = info.files;
         return Topics.insert(info.data,(error,result) => {
           if(error){
             throw error;
@@ -1399,7 +1400,7 @@ const resolveFunctions = {
       else {
         future.return('')
       }
-      future.await();
+      return future.wait();
     }
   },
 

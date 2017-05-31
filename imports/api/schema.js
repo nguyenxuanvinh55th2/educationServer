@@ -42,8 +42,8 @@ const schema = [`
   }
   type ClassSubject {
   	_id: String
-    name: String
     code: String
+    name: String
     teacher: User
   	subject: Subject
     class: Class
