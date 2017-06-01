@@ -18,7 +18,7 @@ Files = new FilesCollection({
   debug: Meteor.isServer && process.env.NODE_ENV === 'development',
   onBeforeUpload(file) {
     if(!this.userId) return false;
-    if (file.size <= 51200000 && /png|jpg|jpeg/i.test(file.extension)) return true;
+    if (file.size <= 10485760) return true;
     return 'Please upload image, with size equal or less than 2MB';
   },
   onAfterUpload(image) {
