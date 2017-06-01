@@ -1188,12 +1188,14 @@ const resolveFunctions = {
     screenShot: (_, {token, link}) => {
       let user = Meteor.users.findOne({accessToken: token});
       if(user) {
-        Meteor.users.update({_id: user._id}, {$push: {
-          checkOutImage: {
-            link,
-            time: moment().valueOf()
-          }
-        }});
+        if(user.checkOutImage.length <= 4) {
+          Meteor.users.update({_id: user._id}, {$push: {
+            checkOutImage: {
+              link,
+              time: moment().valueOf()
+            }
+          }});
+        }
       }
       return
     },
