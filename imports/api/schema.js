@@ -315,6 +315,7 @@ const schema = [`
     removeQuestionSet(token: String!, _id: String): String
     removeExamination(token: String!, _id: String): String
     checkCodeUser(userId: String, code: String): String
+    getInfoUser(token: String): String
   }
 
   type Subscription {
