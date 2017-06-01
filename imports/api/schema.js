@@ -316,6 +316,7 @@ const schema = [`
     removeExamination(token: String!, _id: String): String
     searchUser(keyWord: String!): [User]
     checkCodeUser(userId: String, code: String): String
+    getInfoUser(token: String): String
   }
 
   type Subscription {

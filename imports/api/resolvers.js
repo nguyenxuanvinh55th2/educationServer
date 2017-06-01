@@ -1401,7 +1401,30 @@ const resolveFunctions = {
         future.return('')
       }
       return future.wait();
-    }
+    },
+    getInfoUser(root, {token}){
+      if(token){
+        let existsUser = Meteor.users.findOne({accessToken: token});
+        if(existsUser){
+          if(existsUser.profileObj && existsUser.profileObj.imageUrl){
+            existsUser.image =  existsUser.profileObj.imageUrl
+          }
+          else if (existsUser.picture) {
+            existsUser.image = existsUser.picture.data.url
+          }
+          else if (existsUser.profile && existsUser.profile.imageId) {
+            existsUser.image = Files.findOne({_id: existsUser.profile.imageId}).link();
+          }
+          return JSON.stringify({
+            _id: existsUser._id,
+            image : existsUser.image ? existsUser.image : '',
+            name: existsUser.profileObj ? existsUser.profileObj.name : existsUser.name ? existsUser.name : existsUser.username,
+            email: existsUser.profileObj ? existsUser.profileObj.email : existsUser.email ? existsUser.email : existsUser.emails[0] ? existsUser.emails[0].address : ''
+          });
+        }
+      }
+      return ''
+    },
   },
 
   Activity: {
