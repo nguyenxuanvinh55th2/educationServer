@@ -741,7 +741,6 @@ const resolveFunctions = {
             var plaintext = decrypted.toString(CryptoJS.enc.Utf8);
             let result = Accounts._checkPassword(user, plaintext);
             if(result.error){
-              console.log('sai Pass');
                 throw result.error;
             } else {
                 let stampedLoginToken = Accounts._generateStampedLoginToken();
@@ -784,6 +783,8 @@ const resolveFunctions = {
         });
       }
       else {
+          let stampedLoginToken = Accounts._generateStampedLoginToken();
+          info.accessToken = stampedLoginToken.token;
           Meteor.users.update({googleId: info.googleId},{$set:info},(error) => {
             if(error){
               future.return();
@@ -798,39 +799,42 @@ const resolveFunctions = {
       }
       return future.wait();
     },
-    loginWithFacebook: (_, {info})=>{
-      let future = new Future();
-      info = JSON.parse(info);
-      let checkId = Meteor.users.find({userID: info.userID}).count();
-      if(checkId === 0){
-        Meteor.users.insert(info, (err) => {
-          if(err) {
-            console.log("message error ", err);
-            future.return();
-          }
-          else {
-            future.return(JSON.stringify({
-              user: Meteor.users.findOne({userID: info.userID}),
-              token: info.accessToken
-            }));
-          }
-        });
-      }
-      else {
-        Meteor.users.update({userID: info.userID},{$set:info},(error) => {
-          if(error){
-            future.return();
-          }
-          else {
-            future.return(JSON.stringify({
-                   user: Meteor.users.findOne({userID: info.userID}),
-                   token: info.accessToken
-                 }));
-          }
-        });
-      }
-      return future.wait();
-    },
+
+      loginWithFacebook: (_, {info})=>{
+        let future = new Future();
+        info = JSON.parse(info);
+        let checkId = Meteor.users.find({userID: info.userID}).count();
+        if(checkId === 0){
+          Meteor.users.insert(info, (err) => {
+            if(err) {
+              console.log("message error ", err);
+              future.return();
+            }
+            else {
+              future.return(JSON.stringify({
+                user: Meteor.users.findOne({userID: info.userID}),
+                token: info.accessToken
+              }));
+            }
+          });
+        }
+        else {
+          let stampedLoginToken = Accounts._generateStampedLoginToken();
+          info.accessToken = stampedLoginToken.token;
+          Meteor.users.update({userID: info.userID},{$set:info},(error) => {
+            if(error){
+              future.return();
+            }
+            else {
+              future.return(JSON.stringify({
+                     user: Meteor.users.findOne({userID: info.userID}),
+                     token: stampedLoginToken.token
+                   }));
+            }
+          });
+        }
+        return future.wait();
+      },
     insertQuestionSet: (_, {userId, questionSet, questions}) => {
       let user = Meteor.users.findOne({_id: userId});
       if(user) {
