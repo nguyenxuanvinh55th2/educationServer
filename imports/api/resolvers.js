@@ -435,7 +435,12 @@ const resolveFunctions = {
       if(type === 'personal') {
         var hashedToken = Accounts._hashLoginToken(token);
         var user = Meteor.users.find({'services.resume.loginTokens': {$elemMatch: {hashedToken: hashedToken}}}).fetch()[0];
-        var questionSetIds = QuestionSets.find({subjectId}).map(item => item._id);
+        var questionSetIds;
+        if(subjectId !== 'other') {
+          questionSetIds = QuestionSets.find({subjectId}).map(item => item._id);
+        } else {
+            questionSetIds = QuestionSets.find({subjectId: ''}).map(item => item._id);
+        }
         var questionIds = QuestionHaves.find({questionSetId: {$in: questionSetIds}}).map(item => item.questionId);
         if(user) {
           return Questions.find({_id: {$in: questionIds}}).fetch();
@@ -1637,6 +1642,9 @@ const resolveFunctions = {
       return (Results.find({_id: {$in: results}, questionId: _id, isCorrect: true}).count() / resultArray.length);
     },
     correctRate: ({_id, questionSetId}) => {
+      if(!questionSetId) {
+        questionSetId = QuestionHaves.findOne({questionId: _id}).questionSetId;
+      }
       let examIds = Examinations.find({questionSetId}).map(item => item._id);
       let resultArray = UserExams.find({examId: {$in: examIds}}).map(item => item.result);
       let results = [];
