@@ -540,6 +540,9 @@ const resolveFunctions = {
       let future = new Future();
       future.return(Meteor.users.find({_id: {$in: userIds}}).fetch());
       return future.wait();
+    },
+    getInfoTopic: (_, {_id}) => {
+      return Topics.findOne({_id: _id});
     }
   },
 
@@ -1370,6 +1373,38 @@ const resolveFunctions = {
         }
       return ;
     },
+    insertMemberReply: (_, {token, info}) => {
+      let user = Meteor.users.findOne({accessToken: token});
+      if(user) {
+        info = JSON.parse(info);
+        info.data.createdAt = moment().valueOf();
+        info.data.createdById = user._id;
+        info.data.ownerId = user._id;
+        return MemberReplys.insert(info.data,(error, result) => {
+            if(error){
+              throw error;
+            }
+            else {
+              let imageData ={};
+              if(info.image){
+                if(info.image.fileName && info.image.file){
+                  imageData.file = info.image.file.replace(/^data:image\/(png|gif|jpeg);base64,/,'');
+                  buf = new Buffer(imageData.file, 'base64');
+                  Files.write(buf, {fileName: info.image.fileName, type: info.image.type}, (err, fileRef)=>{
+                          if (err) {
+                            throw err;
+                          } else {
+                            console.log(result, fileRef._id);
+                            MemberReplys.update({_id: result},{$set: {"files": [fileRef._id]}})
+                          }
+                      }, true);
+                }
+              }
+            }
+          })
+        }
+      return ;
+    },
     updateCurrentQuestion: (_,{token, info}) => {
       let user = Meteor.users.findOne({accessToken: token});
       if(user) {
@@ -1707,7 +1742,20 @@ const resolveFunctions = {
   MemberReply: {
     owner: ({ownerId}) => {
       return Meteor.users.findOne({_id: ownerId});
-    }
+    },
+    files: ({files}) => {
+      if(files && files[0]){
+        return Files.find({_id:{$in:files}}).each().map((img)=>{
+                return {
+                  _id: img._id,
+                  file: img.link(),
+                  fileName: img.name,
+                  type: img.type
+                };
+            });
+      }
+      return [];
+    },
   },
   Subscription: {
     getsub: (root) => {

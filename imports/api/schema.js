@@ -106,8 +106,7 @@ const schema = [`
   	owner: User
   	content: String
   	files:[File]
-  	createAt:String
-  	index: String
+  	createdAt: Float
   }
 
   type Notification {
@@ -274,6 +273,7 @@ const schema = [`
     getAllPlayperExamByUser(userId: String): [Examination]
     getInfoClassSubject(classSubjectId: String): ClassSubject
     getAllUserFriendInClass(userIds: [String]): [User]
+    getInfoTopic(_id: String): Topic
   }
 
   type Mutation {
@@ -317,6 +317,7 @@ const schema = [`
     searchUser(keyWord: String!): [User]
     checkCodeUser(userId: String, code: String): String
     getInfoUser(token: String): String
+    insertMemberReply(token: String, info: String): String
   }
 
   type Subscription {
