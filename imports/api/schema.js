@@ -153,6 +153,7 @@ const schema = [`
   type UserChat {
   	_id: String,
   	user: User,
+    isFriend: Boolean,
   	contentId: String,
   	content: [Content]
   }
@@ -314,10 +315,12 @@ const schema = [`
     getExistEmail(value: String!): User
     removeQuestionSet(token: String!, _id: String): String
     removeExamination(token: String!, _id: String): String
-    searchUser(keyWord: String!): [User]
+    searchUser(userId: String!, keyWord: String!): [UserChat]
     checkCodeUser(userId: String, code: String): String
     getInfoUser(token: String): String
     insertMemberReply(token: String, info: String): String
+    insertUserFriend(userId: String!, _id: String): String
+    updateFriendList(userId: String!, _id: String!): String
   }
 
   type Subscription {
