@@ -17,7 +17,7 @@ Future = Npm.require('fibers/future');
 import CryptoJS from "crypto-js";
 
 // process.env.MAIL_URL = 'smtp://tuielearning@gmail.com:elearning@smtp.gmail.com:587/';
-import '../../server/secrets.js';
+// import '../../server/secrets.js';
 
 const sendEmail = (mailAddress, VertificateCode, userId) => {
     console.log('mailAddress ', mailAddress);

@@ -20,7 +20,7 @@ import { CurrentQuestion } from '../collections/currentQuestion';
 import { Questions } from '../collections/question';
 
 import './configureMailService';
-import './secrets';
+// import './secrets';
 const login = require("facebook-chat-api");
 
 //process.env.MAIL_URL = 'smtp://sanghuynhnt95@gmail.com:1235813211995@smtp.gmail.com:587/';
