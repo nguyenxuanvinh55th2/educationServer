@@ -16,9 +16,8 @@ import Fiber from 'fibers';
 Future = Npm.require('fibers/future');
 import CryptoJS from "crypto-js";
 
-process.env.MAIL_URL = 'smtp://tuielearning@gmail.com:elearning@smtp.gmail.com:587/';
-
-var VertificateCode = '';
+// process.env.MAIL_URL = 'smtp://tuielearning@gmail.com:elearning@smtp.gmail.com:587/';
+import '../../server/secrets.js';
 
 const sendEmail = (mailAddress, VertificateCode, userId) => {
     console.log('mailAddress ', mailAddress);
@@ -48,15 +47,33 @@ const sendEmail = (mailAddress, VertificateCode, userId) => {
     var html = SSR.render("emailText", {text:encryptedString, userId: userId});
 
     //nội dung mail
-    var email = {
-      to: mailAddress,
-      from: 'sanghuynhnt95@gmail.com',
-      subject: "test email",
-      html: html
-    };
+    // var email = {
+    //   to: mailAddress,
+    //   from: 'sanghuynhnt95@gmail.com',
+    //   subject: "test email",
+    //   html: html
+    // };
+
+    var postURL = process.env.MAILGUN_API_URL + '/' + process.env.MAILGUN_DOMAIN + '/messages';
+    var options =   {
+        auth: "api:" + process.env.MAILGUN_API_KEY,
+        params: {
+            "from":"Movie at My Place <info@movieatmyplace.com>",
+            "to":[mailAddress],
+            "subject": 'movieatmyplace.com quick feedback',
+            "html": html,
+        }
+    }
+
+    var onError = function(error, result) {
+        if(error) {console.log("Error: " + error)}
+    }
+
+    // Send the request
+    Meteor.http.post(postURL, options, onError);
 
     //gửi mail
-    Email.send(email);
+    //Email.send(email);
 }
 
 const joinUserToClass = (userId, classId) => {
@@ -113,21 +130,24 @@ const getUserInfo = (userId) => {
     var user = {
       _id: query._id,
       name: query.profileObj ? query.profileObj.name : query.name ? query.name : query.username,
-      image: '',
+      image: 'https://i1249.photobucket.com/albums/hh508/nguyenxuanvinhict/logofn1_zpswndf0chm.png',
       email: query.profileObj ? query.profileObj.email : query.email ? query.email : query.emails[0].address,
       social: query.googleId ? 'https://plus.google.com/u/0/' + query.googleId + '/posts' : 'https://facebook.com/u/0/' + query.id,
       checkOutImage: query.checkOutImage
       //online: query.status.online,
       //lastLogin: getLastLogin(query.status.lastLogin.date)
     }
+    console.log('something');
     if(query.profileObj && query.profileObj.imageUrl){
       user.image = query.profileObj.imageUrl
     }
     else if (query.picture) {
-      user.image = query.picture.data.url
-    }
-    else if (query.profile && query.profile.imageId) {
-      user.image = Files.findOne({_id: imageId}).link();
+      user.image = query.picture.data.url;
+    } else if(query.profile && query.profile.image) {
+      console.log('query.profile.image ', query.profile.image)
+      user.image = query.profile.image;
+    } else if (query.profile && query.profile.imageId) {
+      user.image = Files.findOne({_id: query.profile.imageId}).link();
     }
     return user;
   }
@@ -1704,6 +1724,9 @@ const resolveFunctions = {
       }
       else if (root.picture) {
       return root.picture.data.url
+      }
+      else if (root.profile && root.profile.image) {
+        return root.profile.image;
       }
       else if (root.profile && root.profile.imageId) {
         return Files.findOne({_id: imageId}).link();

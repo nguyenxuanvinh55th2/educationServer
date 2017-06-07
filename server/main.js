@@ -20,9 +20,10 @@ import { CurrentQuestion } from '../collections/currentQuestion';
 import { Questions } from '../collections/question';
 
 import './configureMailService';
+import './secrets';
 const login = require("facebook-chat-api");
 
-process.env.MAIL_URL = 'smtp://sanghuynhnt95@gmail.com:1235813211995@smtp.gmail.com:587/';
+//process.env.MAIL_URL = 'smtp://sanghuynhnt95@gmail.com:1235813211995@smtp.gmail.com:587/';
 //
 // var VertificateCode = '';
 //
@@ -317,7 +318,7 @@ Accounts.onCreateUser(function(options, user) {
     user.profile.gender = options.gender;
     user.profile.address = options.address;
     user.profile.phone = options.phone;
-    user.profile.picture = 'images/icon-person-128.png';
+    user.profile.image = 'https://i1249.photobucket.com/albums/hh508/nguyenxuanvinhict/userImage_zpsqz3krq9r.jpg';
     user.friendList = []
   }
   return user;
