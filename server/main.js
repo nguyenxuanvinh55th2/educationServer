@@ -18,9 +18,10 @@ import { UserExams } from '../collections/userExam';
 import { Examinations } from '../collections/examination';
 import { CurrentQuestion } from '../collections/currentQuestion';
 import { Questions } from '../collections/question';
+import { ClassSubjects } from '../collections/classSubject';
 
 import './configureMailService';
-import './secrets';
+// import './secrets';
 const login = require("facebook-chat-api");
 
 //process.env.MAIL_URL = 'smtp://sanghuynhnt95@gmail.com:1235813211995@smtp.gmail.com:587/';
@@ -112,6 +113,9 @@ if(Meteor.isServer){
   });
   Meteor.publish('questions', function(){
     return Questions.find({});//note
+  });
+  Meteor.publish('classSubjects', function(){
+    return ClassSubjects.find({});//note
   });
   Meteor.publish('getInfoUser', (token) => {
     if(token){

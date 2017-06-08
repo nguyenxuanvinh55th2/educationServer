@@ -10,6 +10,7 @@ import { Players } from '../../collections/player'
 import { UserExams } from '../../collections/userExam'
 import { Examinations } from '../../collections/examination'
 import { Questions } from '../../collections/question'
+import { ClassSubjects } from '../../collections/classSubject'
 
 import Fiber from 'fibers';
 
@@ -17,7 +18,7 @@ Future = Npm.require('fibers/future');
 import CryptoJS from "crypto-js";
 
 // process.env.MAIL_URL = 'smtp://tuielearning@gmail.com:elearning@smtp.gmail.com:587/';
-import '../../server/secrets.js';
+// import '../../server/secrets.js';
 
 const sendEmail = (mailAddress, VertificateCode, userId) => {
     console.log('mailAddress ', mailAddress);
@@ -569,6 +570,9 @@ const resolveFunctions = {
     },
     getInfoTopic: (_, {_id}) => {
       return Topics.findOne({_id: _id});
+    },
+    getPermissonInAccounting: (_, {userIds, accountingObjectId}) => {
+      return Permissions.find({userId: {$in: userIds}, accountingObjectId: accountingObjectId}).fetch();
     }
   },
 
@@ -1534,7 +1538,7 @@ const resolveFunctions = {
           note: 'Đã gửi lời mời kết bạn',
           read: false,
           createdAt: moment().valueOf(),
-          createdById: userId 
+          createdById: userId
         }
         Notifications.insert(note);
       }
@@ -1556,9 +1560,11 @@ const resolveFunctions = {
         { _id: userId },
         { $push: { childrents: childId } }
       )
+    },
+    removeActivity(root, {_id}) {
+      return Activities.remove({_id: _id});
     }
   },
-
   Activity: {
     topic: ({ topicId }) => {
       return Topics.findOne({_id: topicId});
@@ -1726,7 +1732,10 @@ const resolveFunctions = {
         future.return({});
       }
      return future.wait();
-    }
+   },
+   accounting({_id}){
+     return AccountingObjects.findOne({objectId: _id})
+   }
   },
 
   Theme: {
@@ -1854,6 +1863,17 @@ const resolveFunctions = {
       }
       return [];
     },
+  },
+  Permission: {
+    profile: ({profileId}) => {
+      return Profiles.findOne({_id: profileId});
+    },
+    user: ({userId}) => {
+      return Meteor.users.findOne({_id: userId});
+    },
+    accounting: ({accountingObjectId}) => {
+      return AccountingObjects.findOne({_id: accountingObjectId});
+    }
   },
   Subscription: {
     getsub: (root) => {
