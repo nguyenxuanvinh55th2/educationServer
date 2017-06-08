@@ -18,6 +18,7 @@ import { UserExams } from '../collections/userExam';
 import { Examinations } from '../collections/examination';
 import { CurrentQuestion } from '../collections/currentQuestion';
 import { Questions } from '../collections/question';
+import { ClassSubjects } from '../collections/classSubject';
 
 import './configureMailService';
 // import './secrets';
@@ -112,6 +113,9 @@ if(Meteor.isServer){
   });
   Meteor.publish('questions', function(){
     return Questions.find({});//note
+  });
+  Meteor.publish('classSubjects', function(){
+    return ClassSubjects.find({});//note
   });
   Meteor.publish('getInfoUser', (token) => {
     if(token){

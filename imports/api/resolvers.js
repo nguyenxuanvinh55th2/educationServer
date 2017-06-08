@@ -10,6 +10,7 @@ import { Players } from '../../collections/player'
 import { UserExams } from '../../collections/userExam'
 import { Examinations } from '../../collections/examination'
 import { Questions } from '../../collections/question'
+import { ClassSubjects } from '../../collections/classSubject'
 
 import Fiber from 'fibers';
 
@@ -1536,7 +1537,7 @@ const resolveFunctions = {
           note: 'Đã gửi lời mời kết bạn',
           read: false,
           createdAt: moment().valueOf(),
-          createdById: userId 
+          createdById: userId
         }
         Notifications.insert(note);
       }
@@ -1551,6 +1552,9 @@ const resolveFunctions = {
         { _id },
         { $push: { friendList: userId } }
       )
+    },
+    removeActivity(root, {_id}) {
+      return Activities.remove({_id: _id});
     }
   },
 
