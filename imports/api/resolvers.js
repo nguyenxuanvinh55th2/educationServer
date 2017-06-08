@@ -1100,7 +1100,7 @@ const resolveFunctions = {
             if(info.joinCourse && info.classId && info.classSubject.courseId){
               info.classSubject.subjectId = subjectId;
               info.classSubject.classId = info.classId;
-              info.classSubject.code = (Math.floor(Math.random()*99999) + 10000).toString();
+              // info.classSubject.code = (Math.floor(Math.random()*99999) + 10000).toString();
               ClassSubjects.insert(info.classSubject,(error,result) => {
                 if(error){
                   throw error;
@@ -1555,6 +1555,18 @@ const resolveFunctions = {
     },
     removeActivity(root, {_id}) {
       return Activities.remove({_id: _id});
+    },
+    updateTopic(root, {_id, info}) {
+      info = JSON.parse(info);
+      return Topics.update({_id: _id}, {$set: info});
+    },
+    checkCodeClassSubject(root, {code}) {
+      if(Subjects.findOne({code: code})){
+        return true;
+      }
+      else {
+        return false;
+      }
     }
   },
 

@@ -335,6 +335,8 @@ const schema = [`
     insertUserFriend(userId: String!, _id: String): String
     updateFriendList(userId: String!, _id: String!): String
     removeActivity(_id: String): String
+    updateTopic(_id: String, info: String): String
+    checkCodeClassSubject(code: String): Boolean
   }
 
   type Subscription {
