@@ -319,7 +319,8 @@ Accounts.onCreateUser(function(options, user) {
     user.profile.address = options.address;
     user.profile.phone = options.phone;
     user.profile.image = 'https://i1249.photobucket.com/albums/hh508/nguyenxuanvinhict/userImage_zpsqz3krq9r.jpg';
-    user.friendList = []
+    user.friendList = [];
+    user.code = (Math.floor(Math.random()*90000) + 10000).toString();
   }
   return user;
 });
