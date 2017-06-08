@@ -418,6 +418,7 @@ const resolveFunctions = {
 
         let user = {
           _id: id,
+          isFriend: true,
           contentId: chatQuery ? chatQuery._id : null
         }
 
@@ -568,6 +569,9 @@ const resolveFunctions = {
     },
     getInfoTopic: (_, {_id}) => {
       return Topics.findOne({_id: _id});
+    },
+    getPermissonInAccounting: (_, {userIds, accountingObjectId}) => {
+      return Permissions.find({userId: {$in: userIds}, accountingObjectId: accountingObjectId}).fetch();
     }
   },
 
@@ -979,9 +983,25 @@ const resolveFunctions = {
       }
       return;
     },
-    searchUser: (_,{keyWord}) => {
+    searchUser: (_,{userId, keyWord}) => {
       let codition = {$regex: keyWord, $options: 'iu'};
-      return Meteor.users.find({$or: [{'username': codition}, {'name': codition}, {'profileObj.name': codition}]}).map(item => getUserInfo(item._id));
+      let friendList = Meteor.users.findOne({_id: userId}).friendList;
+      let usersList = [];
+      Meteor.users.find({$or: [{'username': codition}, {'name': codition}, {'profileObj.name': codition}]}).map(item => {
+        let id = item._id;
+
+        //truy vấn trả về nội dung chat với user tương ưng
+        let chatQuery = ChatDatas.findOne({ members: { $all: [ userId, id ] } });
+
+        let user = {
+          _id: id,
+          isFriend: __.find(friendList, item => item === id) ? true : false,
+          contentId: chatQuery ? chatQuery._id : null
+        }
+
+        usersList.push(user);
+      });
+      return usersList;
     },
     insertQuestionFromBank: (_, {token, questionSet, questions}) => {
       var hashedToken = Accounts._hashLoginToken(token);
@@ -1491,6 +1511,47 @@ const resolveFunctions = {
       }
       return ''
     },
+    insertUserFriend(root, {userId, _id}) {
+      let user = Meteor.users.findOne({_id: userId});
+      let sendimage = 'https://i1249.photobucket.com/albums/hh508/nguyenxuanvinhict/userImage_zpsqz3krq9r.jpg';
+      if(user.profileObj && user.profileObj.imageUrl){
+        sendimage = user.profileObj.imageUrl
+      }
+      else if (user.picture) {
+        sendimage = user.picture.data.url
+      }
+      else if (user.profile && user.profile.image) {
+        sendimage = user.profile.image;
+      }
+      else if (user.profile && user.profile.imageId) {
+        sendimage = Files.findOne({_id: imageId}).link();
+      }
+      if(user) {
+        var note = {
+          userId: _id,
+          type: 'add-friend-note',
+          sendId: user._id,
+          sendname: user.profileObj ? user.profileObj.name : user.name ? user.name : user.username,
+          sendimage,
+          note: 'Đã gửi lời mời kết bạn',
+          read: false,
+          createdAt: moment().valueOf(),
+          createdById: userId 
+        }
+        Notifications.insert(note);
+      }
+      return;
+    },
+    updateFriendList(root, {userId, _id}) {
+      Meteor.users.update(
+        { _id: userId },
+        { $push: { friendList: _id } }
+      )
+      Meteor.users.update(
+        { _id },
+        { $push: { friendList: userId } }
+      )
+    }
   },
 
   Activity: {
@@ -1551,6 +1612,7 @@ const resolveFunctions = {
       return Meteor.users.findOne({_id: userId});
     },
     createdBy({createdById}) {
+      console.log('createdById ', createdById)
       return Meteor.users.findOne({_id: createdById});
     },
     classInfo({classId}) {
@@ -1659,7 +1721,10 @@ const resolveFunctions = {
         future.return({});
       }
      return future.wait();
-    }
+   },
+   accounting({_id}){
+     return AccountingObjects.findOne({objectId: _id})
+   }
   },
 
   Theme: {
@@ -1731,10 +1796,10 @@ const resolveFunctions = {
       else if (root.profile && root.profile.imageId) {
         return Files.findOne({_id: imageId}).link();
       }
-      return '';
+      return 'https://i1249.photobucket.com/albums/hh508/nguyenxuanvinhict/userImage_zpsqz3krq9r.jpg';
     },
     email: (root) => {
-      return root.profileObj ? root.profileObj.email : root.email ? root.email : root.emails[0] ? root.emails[0].address : '';
+      return root.profileObj ? root.profileObj.email : root.email ? root.email : root.emails ? root.emails[0].address : '';
     },
     social: (root) => {
       return root.googleId ? 'https://plus.google.com/u/0/' + root.googleId + '/posts' : 'https://facebook.com/u/0/' + root.id;
@@ -1787,6 +1852,17 @@ const resolveFunctions = {
       }
       return [];
     },
+  },
+  Permission: {
+    profile: ({profileId}) => {
+      return Profiles.findOne({_id: profileId});
+    },
+    user: ({userId}) => {
+      return Meteor.users.findOne({_id: userId});
+    },
+    accounting: ({accountingObjectId}) => {
+      return AccountingObjects.findOne({_id: accountingObjectId});
+    }
   },
   Subscription: {
     getsub: (root) => {

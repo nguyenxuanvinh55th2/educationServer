@@ -53,6 +53,7 @@ const schema = [`
   	publicActivity: Boolean
   	theme: [Theme]
     roles: [String]
+    accounting: AccountingObject
   }
 
   type Examination {
@@ -153,6 +154,7 @@ const schema = [`
   type UserChat {
   	_id: String,
   	user: User,
+    isFriend: Boolean,
   	contentId: String,
   	content: [Content]
   }
@@ -232,6 +234,17 @@ const schema = [`
   type Profile {
     _id: String
     roles: [String]
+    name: String
+    info: String
+  }
+  type Permission {
+    _id: String
+    profileId: String
+    userId: String
+    accountingObjectId: String
+    profile: Profile
+    user: User
+    accounting: AccountingObject
   }
   type Query {
     getInfoUser(token: String): String
@@ -274,6 +287,7 @@ const schema = [`
     getInfoClassSubject(classSubjectId: String): ClassSubject
     getAllUserFriendInClass(userIds: [String]): [User]
     getInfoTopic(_id: String): Topic
+    getPermissonInAccounting (userIds: [String], accountingObjectId: String): [Permission]
   }
 
   type Mutation {
@@ -314,10 +328,12 @@ const schema = [`
     getExistEmail(value: String!): User
     removeQuestionSet(token: String!, _id: String): String
     removeExamination(token: String!, _id: String): String
-    searchUser(keyWord: String!): [User]
+    searchUser(userId: String!, keyWord: String!): [UserChat]
     checkCodeUser(userId: String, code: String): String
     getInfoUser(token: String): String
     insertMemberReply(token: String, info: String): String
+    insertUserFriend(userId: String!, _id: String): String
+    updateFriendList(userId: String!, _id: String!): String
   }
 
   type Subscription {
