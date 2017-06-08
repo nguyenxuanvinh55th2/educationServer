@@ -568,6 +568,9 @@ const resolveFunctions = {
     },
     getInfoTopic: (_, {_id}) => {
       return Topics.findOne({_id: _id});
+    },
+    getPermissonInAccounting: (_, {userIds, accountingObjectId}) => {
+      return Permissions.find({userId: {$in: userIds}, accountingObjectId: accountingObjectId}).fetch();
     }
   },
 
@@ -1659,7 +1662,10 @@ const resolveFunctions = {
         future.return({});
       }
      return future.wait();
-    }
+   },
+   accounting({_id}){
+     return AccountingObjects.findOne({objectId: _id})
+   }
   },
 
   Theme: {
@@ -1787,6 +1793,17 @@ const resolveFunctions = {
       }
       return [];
     },
+  },
+  Permission: {
+    profile: ({profileId}) => {
+      return Profiles.findOne({_id: profileId});
+    },
+    user: ({userId}) => {
+      return Meteor.users.findOne({_id: userId});
+    },
+    accounting: ({accountingObjectId}) => {
+      return AccountingObjects.findOne({_id: accountingObjectId});
+    }
   },
   Subscription: {
     getsub: (root) => {
