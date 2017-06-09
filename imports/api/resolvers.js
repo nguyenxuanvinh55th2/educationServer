@@ -986,7 +986,7 @@ const resolveFunctions = {
     },
     searchUser: (_,{userId, keyWord}) => {
       let codition = {$regex: keyWord, $options: 'iu'};
-      let friendList = Meteor.users.findOne({_id: userId}).friendList;
+      let user = Meteor.users.findOne({_id: userId});
       let usersList = [];
       Meteor.users.find({$or: [{'username': codition}, {'name': codition}, {'profileObj.name': codition}]}).map(item => {
         let id = item._id;
@@ -996,7 +996,8 @@ const resolveFunctions = {
 
         let user = {
           _id: id,
-          isFriend: __.find(friendList, item => item === id) ? true : false,
+          isFriend: __.find(user.friendList, item => item === id) ? true : false,
+          isChildren: __.find(user.childrents, item => item === id) ? true : false,
           contentId: chatQuery ? chatQuery._id : null
         }
 
@@ -1553,6 +1554,13 @@ const resolveFunctions = {
         { $push: { friendList: userId } }
       )
     },
+    insertChildrent(root, {userId, code}) {
+      let childId = Meteor.users.findOne({code})._id;
+      Meteor.users.update(
+        { _id: userId },
+        { $push: { childrents: childId } }
+      )
+    },
     removeActivity(root, {_id}) {
       return Activities.remove({_id: _id});
     },
@@ -1569,7 +1577,6 @@ const resolveFunctions = {
       }
     }
   },
-
   Activity: {
     topic: ({ topicId }) => {
       return Topics.findOne({_id: topicId});

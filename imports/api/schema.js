@@ -155,6 +155,7 @@ const schema = [`
   	_id: String,
   	user: User,
     isFriend: Boolean,
+    isChildrent: Boolean,
   	contentId: String,
   	content: [Content]
   }
@@ -334,6 +335,7 @@ const schema = [`
     insertMemberReply(token: String, info: String): String
     insertUserFriend(userId: String!, _id: String): String
     updateFriendList(userId: String!, _id: String!): String
+    insertChildrent(userId: String!, code: String!): String
     removeActivity(_id: String): String
     updateTopic(_id: String, info: String): String
     checkCodeClassSubject(code: String): Boolean
