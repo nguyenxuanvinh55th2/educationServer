@@ -339,6 +339,7 @@ const schema = [`
     removeActivity(_id: String): String
     updateTopic(_id: String, info: String): String
     checkCodeClassSubject(code: String): Boolean
+    updateProfile(_id: String, info: String): String
   }
 
   type Subscription {

@@ -1575,6 +1575,10 @@ const resolveFunctions = {
       else {
         return false;
       }
+    },
+    updateProfile(root, {_id, info}){
+      info = JSON.parse(info);
+      return Profiles.update({_id: _id},{$set: info})
     }
   },
   Activity: {
