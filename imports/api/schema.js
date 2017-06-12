@@ -20,6 +20,7 @@ const schema = [`
   }
 
   type Content {
+    _id: String
   	index: Int,
   	userId: String,
   	user: User,

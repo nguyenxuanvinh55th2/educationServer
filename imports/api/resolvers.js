@@ -11,6 +11,7 @@ import { UserExams } from '../../collections/userExam'
 import { Examinations } from '../../collections/examination'
 import { Questions } from '../../collections/question'
 import { ClassSubjects } from '../../collections/classSubject'
+import { ChatContents } from '../../collections/chatContent'
 
 import Fiber from 'fibers';
 
@@ -1653,6 +1654,7 @@ const resolveFunctions = {
         var query = ChatContents.find({chatId: root.contentId}).fetch();
         query.forEach(item => {
           var cont = {
+            _id: item._id,
             index: item.index,
             userId: item.userId,
             message: item.message,
