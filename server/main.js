@@ -19,6 +19,7 @@ import { Examinations } from '../collections/examination';
 import { CurrentQuestion } from '../collections/currentQuestion';
 import { Questions } from '../collections/question';
 import { ClassSubjects } from '../collections/classSubject';
+import { ChatContents } from '../collections/chatContent';
 
 import './configureMailService';
 // import './secrets';
@@ -116,6 +117,9 @@ if(Meteor.isServer){
   });
   Meteor.publish('classSubjects', function(){
     return ClassSubjects.find({});//note
+  });
+  Meteor.publish('chatContents', function(userId){
+    return ChatContents.find({receiver: userId});//note
   });
   Meteor.publish('getInfoUser', (token) => {
     if(token){
