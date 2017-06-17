@@ -1005,15 +1005,14 @@ const resolveFunctions = {
 
         //truy vấn trả về nội dung chat với user tương ưng
         let chatQuery = ChatDatas.findOne({ members: { $all: [ userId, id ] } });
-
-        let user = {
+        let ob = {
           _id: id,
           isFriend: __.find(user.friendList, item => item === id) ? true : false,
           isChildren: __.find(user.childrents, item => item === id) ? true : false,
           contentId: chatQuery ? chatQuery._id : null
         }
 
-        usersList.push(user);
+        usersList.push(ob);
       });
       return usersList;
     },
