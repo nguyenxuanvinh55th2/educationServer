@@ -22,7 +22,6 @@ import CryptoJS from "crypto-js";
 // import '../../server/secrets.js';
 
 const sendEmail = (mailAddress, VertificateCode, userId) => {
-    console.log('mailAddress ', mailAddress);
 
     //VertificateCode = (Math.floor(Math.random()*99999) + 10000).toString();
 
@@ -139,14 +138,12 @@ const getUserInfo = (userId) => {
       //online: query.status.online,
       //lastLogin: getLastLogin(query.status.lastLogin.date)
     }
-    console.log('something');
     if(query.profileObj && query.profileObj.imageUrl){
       user.image = query.profileObj.imageUrl
     }
     else if (query.picture) {
       user.image = query.picture.data.url;
     } else if(query.profile && query.profile.image) {
-      console.log('query.profile.image ', query.profile.image)
       user.image = query.profile.image;
     } else if (query.profile && query.profile.imageId) {
       user.image = Files.findOne({_id: query.profile.imageId}).link();
@@ -579,7 +576,6 @@ const resolveFunctions = {
     },
     friendList: (_, {userId}) => {
       let user = Meteor.users.findOne({_id: userId});
-      console.log('user ', user);
       if(user) {
         let friendList = user.friendList;
         return Meteor.users.find({_id: {$in: friendList}}).fetch();
@@ -618,10 +614,8 @@ const resolveFunctions = {
     },
     authenticateUser: (_,{token, info}) => {
       let user = Meteor.users.findOne({accessToken: token});
-      console.log("message ", info);
       if(user) {
         info = JSON.parse(info);
-        console.log("info ", user._id);
         if(info.code === user.vertificateCode) {
             Meteor.users.update({'_id': user._id, 'emails.address': user.emails[0].address}, {$set: {'emails.$.verified': true}});
         }
@@ -935,7 +929,6 @@ const resolveFunctions = {
     },
     addQuestionFromFile: (_, {token, questionSet, questionFile}) => {
       let user = Meteor.users.findOne({accessToken: token});
-      console.log("message ", questionFile);
       if(user) {
         questionSet = JSON.parse(questionSet);
         let future = new Future();
@@ -1309,7 +1302,6 @@ const resolveFunctions = {
       let user = Meteor.users.findOne({accessToken: token});
       if(user) {
         let player = Players.findOne({userId: user._id});
-        console.log('player ', player);
         if(player) {
           answer = [answer];
           let userExam = UserExams.findOne({examId, playerId: player._id});
@@ -1452,7 +1444,6 @@ const resolveFunctions = {
                           if (err) {
                             throw err;
                           } else {
-                            console.log(result, fileRef._id);
                             MemberReplys.update({_id: result},{$set: {"files": [fileRef._id]}})
                           }
                       }, true);
@@ -1466,7 +1457,6 @@ const resolveFunctions = {
     updateCurrentQuestion: (_,{token, info}) => {
       let user = Meteor.users.findOne({accessToken: token});
       if(user) {
-        console.log('info ', info);
         info = JSON.parse(info);
         Questions.update({_id: 'currentQuestion'}, {$set: {
           questionId: info._id
@@ -1718,7 +1708,6 @@ const resolveFunctions = {
       return Meteor.users.findOne({_id: userId});
     },
     createdBy({createdById}) {
-      console.log('createdById ', createdById)
       return Meteor.users.findOne({_id: createdById});
     },
     classInfo({classId}) {
