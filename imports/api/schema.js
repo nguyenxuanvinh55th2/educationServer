@@ -145,6 +145,9 @@ const schema = [`
     friendList: [String]
     userFriendsUser: [User]
     childrents: [User]
+    firstName: String
+    lastName: String
+    fullName: String
   }
 
   type CheckOutImage {
@@ -290,6 +293,7 @@ const schema = [`
     getAllUserFriendInClass(userIds: [String]): [User]
     getInfoTopic(_id: String): Topic
     getPermissonInAccounting (userIds: [String], accountingObjectId: String): [Permission]
+    friendList (userId: String!): [User]
   }
 
   type Mutation {
@@ -341,6 +345,8 @@ const schema = [`
     updateTopic(_id: String, info: String): String
     checkCodeClassSubject(code: String): Boolean
     updateProfile(_id: String, info: String): String
+    updateProfileUser(token: String!, info: String) : String
+    checkPasswordUser(token: String!, userId: String, password: String) : Boolean
   }
 
   type Subscription {

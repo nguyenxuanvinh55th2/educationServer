@@ -287,14 +287,16 @@ const resolveFunctions = {
           else if (existsUser.picture) {
             existsUser.image = existsUser.picture.data.url
           }
-          else if (existsUser.profile && existsUser.profile.imageId) {
-            existsUser.image = Files.findOne({_id: existsUser.profile.imageId}).link();
+          else if (existsUser.profile) {
+            existsUser.image = existsUser.profile.image
           }
           return JSON.stringify({
             _id: existsUser._id,
             image : existsUser.image ? existsUser.image : '',
             name: existsUser.profileObj ? existsUser.profileObj.name : existsUser.name ? existsUser.name : existsUser.username,
-            email: existsUser.profileObj ? existsUser.profileObj.email : existsUser.email ? existsUser.email : existsUser.emails[0] ? existsUser.emails[0].address : ''
+            email: existsUser.profileObj ? existsUser.profileObj.email : existsUser.email ? existsUser.email : existsUser.emails[0] ? existsUser.emails[0].address : '',
+            firstName: existsUser.profile.firstName,
+            lastName: existsUser.profile.lastName
           });
         }
       }
@@ -452,7 +454,7 @@ const resolveFunctions = {
     subjectByUser: (root, {token}) => {
       var hashedToken = Accounts._hashLoginToken(token);
       var user = Meteor.users.find({'services.resume.loginTokens': {$elemMatch: {hashedToken: hashedToken}}}).fetch()[0];
-      return Subjects.find({createrId: user._id}).fetch();
+      return Subjects.find({"createrId": user._id}).fetch();
     },
     questionBySubject: (root, {token, subjectId, type}) => {
       if(type === 'personal') {
@@ -574,6 +576,15 @@ const resolveFunctions = {
     },
     getPermissonInAccounting: (_, {userIds, accountingObjectId}) => {
       return Permissions.find({userId: {$in: userIds}, accountingObjectId: accountingObjectId}).fetch();
+    },
+    friendList: (_, {userId}) => {
+      let user = Meteor.users.findOne({_id: userId});
+      console.log('user ', user);
+      if(user) {
+        let friendList = user.friendList;
+        return Meteor.users.find({_id: {$in: friendList}}).fetch();
+      }
+      return []
     }
   },
 
@@ -1501,14 +1512,16 @@ const resolveFunctions = {
           else if (existsUser.picture) {
             existsUser.image = existsUser.picture.data.url
           }
-          else if (existsUser.profile && existsUser.profile.imageId) {
-            existsUser.image = Files.findOne({_id: existsUser.profile.imageId}).link();
+          else if (existsUser.profile) {
+            existsUser.image = existsUser.profile.image;
           }
           return JSON.stringify({
             _id: existsUser._id,
             image : existsUser.image ? existsUser.image : '',
             name: existsUser.profileObj ? existsUser.profileObj.name : existsUser.name ? existsUser.name : existsUser.username,
-            email: existsUser.profileObj ? existsUser.profileObj.email : existsUser.email ? existsUser.email : existsUser.emails[0] ? existsUser.emails[0].address : ''
+            email: existsUser.profileObj ? existsUser.profileObj.email : existsUser.email ? existsUser.email : existsUser.emails[0] ? existsUser.emails[0].address : '',
+            firstName: existsUser.profile.firstName,
+            lastName: existsUser.profile.lastName
           });
         }
       }
@@ -1580,6 +1593,72 @@ const resolveFunctions = {
     updateProfile(root, {_id, info}){
       info = JSON.parse(info);
       return Profiles.update({_id: _id},{$set: info})
+    },
+    checkPasswordUser: (_,{token, userId, password}) => {
+      var hashedToken = Accounts._hashLoginToken(token);
+      var user = Meteor.users.find({'services.resume.loginTokens': {$elemMatch: {hashedToken: hashedToken}}}).fetch()[0];
+      if(user && user._id == userId) {
+        var decrypted = CryptoJS.AES.decrypt(password, "def4ult");
+        var plaintext = decrypted.toString(CryptoJS.enc.Utf8);
+        let result = Accounts._checkPassword(user, plaintext);
+        if(result.error){
+          throw result.error;
+        }
+        else {
+          return true;
+        }
+      }
+      return false;
+    },
+    updateProfileUser: (_,{token,info}) => {
+      var hashedToken = Accounts._hashLoginToken(token);
+      var user = Meteor.users.find({'services.resume.loginTokens': {$elemMatch: {hashedToken: hashedToken}}}).fetch()[0];
+      if(user) {
+        info = JSON.parse(info);
+        let profile = user.profile ? user.profile : {} ;
+        profile.lastName = info.profile.lastName;
+        profile.firstName = info.profile.firstName;
+        if(profile.firstName && profile.lastName) {
+            profile.fullName = profile.lastName + ' ' + profile.firstName;
+        } else if(profile.firstName) {
+            profile.fullName = profile.firstName;
+        } else {
+            profile.fullName = profile.lastName;
+        }
+        profile.gender = info.profile.gender;
+        profile.image = info.image;
+        // if(info.image.fileName){
+        //   profile.image = '';
+        // }
+        return Meteor.users.update({_id: user._id}, { $set: { profile } },(err) => {
+          if(err){
+              throw err;
+          }
+          else {
+            if(info.password && info.password.newPass){
+              var decryptedNewPass = CryptoJS.AES.decrypt(info.password.newPass, "def4ult");
+              var plaintextNewPass = decryptedNewPass.toString(CryptoJS.enc.Utf8);
+              Accounts.setPassword(user._id, plaintextNewPass, {logout:false});
+              Meteor.users.update({_id: user._id}, {$set: {"services.resume.loginTokens": []}})
+            }
+            let imageData = {};
+            if(info.image){
+              if(info.image.fileName && info.image.file){
+                imageData.file = info.image.file.replace(/^data:image\/(png|gif|jpeg);base64,/,'');
+                buf = new Buffer(imageData.file, 'base64');
+                Files.write(buf, {fileName: info.image.fileName, type: info.image.type}, (err, fileRef)=>{
+                        if (err) {
+                          throw err;
+                        } else {
+                          Meteor.users.update({_id: user._id},{$set: {"profile.image": fileRef._id}})
+                        }
+                    }, true);
+              }
+            }
+          }
+        });
+      }
+      return ;
     }
   },
   Activity: {
@@ -1631,7 +1710,7 @@ const resolveFunctions = {
 
   Player: {
     user({userId}) {
-      return getUserInfo(userId);
+      return Meteor.users.findOne({_id: userId});
     }
   },
 
@@ -1811,6 +1890,15 @@ const resolveFunctions = {
   User :  {
     name: (root) => {
       return root.profileObj ? root.profileObj.name : root.name ? root.name : root.username ;
+    },
+    firstName: (root) => {
+      return (root.profile && root.profile.firstName) && root.profile.firstName;
+    },
+    lastName: (root) => {
+      return (root.profile && root.profile.lastName) && root.profile.lastName;
+    },
+    fullName: (root) => {
+      return (root.profile && root.profile.fullName) && root.profile.fullName;
     },
     image: (root) => {
       if(root.profileObj && root.profileObj.imageUrl){
