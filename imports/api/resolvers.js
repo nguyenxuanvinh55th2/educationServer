@@ -1654,6 +1654,19 @@ const resolveFunctions = {
         });
       }
       return ;
+    },
+    unFriend: (_,{userId, friendId}) => {
+      Meteor.users.update(
+      {_id: userId },
+      { $pull: { friendList: friendId } },
+      { multi: true }
+      )
+      Meteor.users.update(
+        {_id: friendId },
+        { $pull: { friendList: userId } },
+        { multi: true }
+      )
+      return
     }
   },
   Activity: {
