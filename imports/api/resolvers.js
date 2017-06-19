@@ -1467,24 +1467,30 @@ const resolveFunctions = {
     checkCodeUser: (_, {userId, code}) => {
       let future = new Future();
       let classSubject = ClassSubjects.findOne({code: code});
-      if(classSubject){
-        Profiles.insert({
-          name: 'student',
-          roles: ['userCanView', 'userCanUploadPoll',]
-        },(error,result) => {
-          if(error){
-            throw error;
-            future.return('')
-          }
-          else if (result) {
-            Permissions.insert({
-              userId: userId,
-              profileId: result,
-              accountingObjectId: classSubject._id,
-            });
-            future.return(classSubject._id);
-          }
-        });
+      if(classSubject && classSubject._id){
+        let acc = AccountingObjects.findOne({objectId: classSubject._id});
+        if(acc && !Permissions.findOne({userId: userId,accountingObjectId: acc._id })){
+          Profiles.insert({
+            name: 'student',
+            roles: ['userCanView', 'userCanUploadPoll',]
+          },(error,result) => {
+            if(error){
+              throw error;
+              future.return('')
+            }
+            else if (result) {
+              Permissions.insert({
+                userId: userId,
+                profileId: result,
+                accountingObjectId: acc._id,
+              });
+              future.return(classSubject._id);
+            }
+          });
+        }
+        else {
+          future.return('duplicated')
+        }
       }
       else {
         future.return('')
