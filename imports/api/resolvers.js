@@ -18,7 +18,7 @@ import Fiber from 'fibers';
 Future = Npm.require('fibers/future');
 import CryptoJS from "crypto-js";
 
-process.env.MAIL_URL = 'smtp://sanghuynhnt95@fastmail.com:123581321huynh@smtp.fastmail.com:587/';
+process.env.MAIL_URL = 'smtp://sanghuynhnt95gmail.com:1235813211995@smtp.gmail.com:587/';
 // process.env.MAIL_URL = 'smtp://tuielearning@gmail.com:elearning@smtp.gmail.com:587/';
 // import '../../server/secrets.js';
 
@@ -611,7 +611,7 @@ const resolveFunctions = {
       info.childrents = [];
       Accounts.createUser(info);
       let user = Meteor.users.findOne({username: info.username});
-      sendEmail(info.email, VertificateCode, user._id);
+      //sendEmail(info.email, VertificateCode, user._id);
       return;
     },
     authenticateUser: (_,{token, info}) => {
