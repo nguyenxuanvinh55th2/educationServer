@@ -293,8 +293,8 @@ const resolveFunctions = {
             image : existsUser.image ? existsUser.image : '',
             name: existsUser.profileObj ? existsUser.profileObj.name : existsUser.name ? existsUser.name : existsUser.username,
             email: existsUser.profileObj ? existsUser.profileObj.email : existsUser.email ? existsUser.email : existsUser.emails[0] ? existsUser.emails[0].address : '',
-            firstName: existsUser.profile.firstName,
-            lastName: existsUser.profile.lastName
+            firstName: existsUser.profile ? existsUser.profile.firstName : '',
+            lastName: existsUser.profile ? existsUser.profile.lastName : ''
           });
         }
       }
@@ -590,7 +590,8 @@ const resolveFunctions = {
       let future = new Future();
       if(userId && token){
         let user = Meteor.users.findOne({_id: userId});
-        if(user){
+        if(user && user._id){
+          Meteor.users.update({_id: user._id},{$set:{accessToken: ''}});
           future.return(user._id);
         }
         else {
@@ -825,7 +826,7 @@ const resolveFunctions = {
       else {
           let stampedLoginToken = Accounts._generateStampedLoginToken();
           info.accessToken = stampedLoginToken.token;
-          Meteor.users.update({googleId: info.googleId},{$set:info},(error) => {
+          Meteor.users.update({googleId: info.googleId},{$set:{accessToken: stampedLoginToken.token}},(error) => {
             if(error){
               future.return();
             }
@@ -861,7 +862,7 @@ const resolveFunctions = {
         else {
           let stampedLoginToken = Accounts._generateStampedLoginToken();
           info.accessToken = stampedLoginToken.token;
-          Meteor.users.update({userID: info.userID},{$set:info},(error) => {
+          Meteor.users.update({userID: info.userID},{$set:{accessToken: stampedLoginToken.token}},(error) => {
             if(error){
               future.return();
             }
@@ -1468,24 +1469,30 @@ const resolveFunctions = {
     checkCodeUser: (_, {userId, code}) => {
       let future = new Future();
       let classSubject = ClassSubjects.findOne({code: code});
-      if(classSubject){
-        Profiles.insert({
-          name: 'student',
-          roles: ['userCanView', 'userCanUploadPoll',]
-        },(error,result) => {
-          if(error){
-            throw error;
-            future.return('')
-          }
-          else if (result) {
-            Permissions.insert({
-              userId: userId,
-              profileId: result,
-              accountingObjectId: classSubject._id,
-            });
-            future.return(classSubject._id);
-          }
-        });
+      if(classSubject && classSubject._id){
+        let acc = AccountingObjects.findOne({objectId: classSubject._id});
+        if(acc && !Permissions.findOne({userId: userId,accountingObjectId: acc._id })){
+          Profiles.insert({
+            name: 'student',
+            roles: ['userCanView', 'userCanUploadPoll',]
+          },(error,result) => {
+            if(error){
+              throw error;
+              future.return('')
+            }
+            else if (result) {
+              Permissions.insert({
+                userId: userId,
+                profileId: result,
+                accountingObjectId: acc._id,
+              });
+              future.return(classSubject._id);
+            }
+          });
+        }
+        else {
+          future.return('duplicated')
+        }
       }
       else {
         future.return('')
@@ -1510,8 +1517,8 @@ const resolveFunctions = {
             image : existsUser.image ? existsUser.image : '',
             name: existsUser.profileObj ? existsUser.profileObj.name : existsUser.name ? existsUser.name : existsUser.username,
             email: existsUser.profileObj ? existsUser.profileObj.email : existsUser.email ? existsUser.email : existsUser.emails[0] ? existsUser.emails[0].address : '',
-            firstName: existsUser.profile.firstName,
-            lastName: existsUser.profile.lastName
+            firstName: existsUser.profile ?  existsUser.profile.firstName : '',
+            lastName: existsUser.profile ?  existsUser.profile.lastName : ''
           });
         }
       }
