@@ -18,6 +18,7 @@ import Fiber from 'fibers';
 Future = Npm.require('fibers/future');
 import CryptoJS from "crypto-js";
 
+process.env.MAIL_URL = 'smtp://sanghuynhnt95gmail.com:1235813211995@smtp.gmail.com:587/';
 // process.env.MAIL_URL = 'smtp://tuielearning@gmail.com:elearning@smtp.gmail.com:587/';
 // import '../../server/secrets.js';
 
@@ -48,33 +49,33 @@ const sendEmail = (mailAddress, VertificateCode, userId) => {
     var html = SSR.render("emailText", {text:encryptedString, userId: userId});
 
     //nội dung mail
-    // var email = {
-    //   to: mailAddress,
-    //   from: 'sanghuynhnt95@gmail.com',
-    //   subject: "test email",
-    //   html: html
-    // };
+    var email = {
+      to: 'sanghuynhnt95@gmail.com',
+      from: 'sanghuynhnt95@fastmail.com',
+      subject: "test email",
+      html: html
+    };
 
-    var postURL = process.env.MAILGUN_API_URL + '/' + process.env.MAILGUN_DOMAIN + '/messages';
-    var options =   {
-        auth: "api:" + process.env.MAILGUN_API_KEY,
-        params: {
-            "from":"Movie at My Place <info@movieatmyplace.com>",
-            "to":[mailAddress],
-            "subject": 'movieatmyplace.com quick feedback',
-            "html": html,
-        }
-    }
+    // var postURL = process.env.MAILGUN_API_URL + '/' + process.env.MAILGUN_DOMAIN + '/messages';
+    // var options =   {
+    //     auth: "api:" + process.env.MAILGUN_API_KEY,
+    //     params: {
+    //         "from":"Movie at My Place <info@movieatmyplace.com>",
+    //         "to":[mailAddress],
+    //         "subject": 'movieatmyplace.com quick feedback',
+    //         "html": html,
+    //     }
+    // }
 
-    var onError = function(error, result) {
-        if(error) {console.log("Error: " + error)}
-    }
-
-    // Send the request
-    Meteor.http.post(postURL, options, onError);
+    // var onError = function(error, result) {
+    //     if(error) {console.log("Error: " + error)}
+    // }
+    //
+    // // Send the request
+    // Meteor.http.post(postURL, options, onError);
 
     //gửi mail
-    //Email.send(email);
+    Email.send(email);
 }
 
 const joinUserToClass = (userId, classId) => {
@@ -610,7 +611,7 @@ const resolveFunctions = {
       info.childrents = [];
       Accounts.createUser(info);
       let user = Meteor.users.findOne({username: info.username});
-      sendEmail(info.email, VertificateCode, user._id);
+      //sendEmail(info.email, VertificateCode, user._id);
       return;
     },
     authenticateUser: (_,{token, info}) => {

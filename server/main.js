@@ -324,7 +324,7 @@ Accounts.onCreateUser(function(options, user) {
     user.profile.name = options.name;
     user.profile.firstName = options.firstName,
     user.profile.lastName = options.lastName,
-    user.profile.fullName = options.lastName + ' ' + options.lastName.firstName,
+    user.profile.fullName = options.lastName + ' ' + options.firstName,
     user.profile.old = options.old;
     user.profile.gender = options.gender;
     user.profile.address = options.address;
