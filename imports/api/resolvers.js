@@ -292,8 +292,8 @@ const resolveFunctions = {
             image : existsUser.image ? existsUser.image : '',
             name: existsUser.profileObj ? existsUser.profileObj.name : existsUser.name ? existsUser.name : existsUser.username,
             email: existsUser.profileObj ? existsUser.profileObj.email : existsUser.email ? existsUser.email : existsUser.emails[0] ? existsUser.emails[0].address : '',
-            firstName: existsUser.profile.firstName,
-            lastName: existsUser.profile.lastName
+            firstName: existsUser.profile ? existsUser.profile.firstName : '',
+            lastName: existsUser.profile ? existsUser.profile.lastName : ''
           });
         }
       }
@@ -589,7 +589,8 @@ const resolveFunctions = {
       let future = new Future();
       if(userId && token){
         let user = Meteor.users.findOne({_id: userId});
-        if(user){
+        if(user && user._id){
+          Meteor.users.update({_id: user._id},{$set:{accessToken: ''}});
           future.return(user._id);
         }
         else {
@@ -824,7 +825,7 @@ const resolveFunctions = {
       else {
           let stampedLoginToken = Accounts._generateStampedLoginToken();
           info.accessToken = stampedLoginToken.token;
-          Meteor.users.update({googleId: info.googleId},{$set:info},(error) => {
+          Meteor.users.update({googleId: info.googleId},{$set:{accessToken: stampedLoginToken.token}},(error) => {
             if(error){
               future.return();
             }
@@ -860,7 +861,7 @@ const resolveFunctions = {
         else {
           let stampedLoginToken = Accounts._generateStampedLoginToken();
           info.accessToken = stampedLoginToken.token;
-          Meteor.users.update({userID: info.userID},{$set:info},(error) => {
+          Meteor.users.update({userID: info.userID},{$set:{accessToken: stampedLoginToken.token}},(error) => {
             if(error){
               future.return();
             }
@@ -1515,8 +1516,8 @@ const resolveFunctions = {
             image : existsUser.image ? existsUser.image : '',
             name: existsUser.profileObj ? existsUser.profileObj.name : existsUser.name ? existsUser.name : existsUser.username,
             email: existsUser.profileObj ? existsUser.profileObj.email : existsUser.email ? existsUser.email : existsUser.emails[0] ? existsUser.emails[0].address : '',
-            firstName: existsUser.profile.firstName,
-            lastName: existsUser.profile.lastName
+            firstName: existsUser.profile ?  existsUser.profile.firstName : '',
+            lastName: existsUser.profile ?  existsUser.profile.lastName : ''
           });
         }
       }
