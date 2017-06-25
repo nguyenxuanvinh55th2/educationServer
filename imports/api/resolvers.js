@@ -582,6 +582,10 @@ const resolveFunctions = {
         return Meteor.users.find({_id: {$in: friendList}}).fetch();
       }
       return []
+    },
+    getAllAssByUserClassSubject: (_, { userId, classSubjectId }) => {
+      // let activities = Activities.find({classSubjectId: classSubjectId, isAssignment: true}).fetch();
+      return [];
     }
   },
 

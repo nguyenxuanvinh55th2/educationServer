@@ -294,6 +294,7 @@ const schema = [`
     getInfoTopic(_id: String): Topic
     getPermissonInAccounting (userIds: [String], accountingObjectId: String): [Permission]
     friendList (userId: String!): [User]
+    getAllAssByUserClassSubject(userId: String, classSubjectId: String): [Topic]
   }
 
   type Mutation {
