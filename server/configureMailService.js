@@ -1,5 +1,10 @@
-if (Meteor.isServer) {
+const AddNotification = (userId) => {
+  var query = Meteor.users.findOne({_id: userId});
+  var userName = query.profile ? (query.profile.name ? query.profile.name : query.profile.fullName) : query.services.google.name;
+  console.log(userName + ' đã nhận mail của bạn');
+}
 
+if (Meteor.isServer) {
   // Global API configuration
   var Api = new Restivus({
     useDefaultAuth: true,
@@ -32,9 +37,9 @@ if (Meteor.isServer) {
   Api.addRoute('imgs/hello12.jpg', {authRequired: false}, {
     get: function () {
       //return Articles.findOne(this.urlParams.id);
-      //var query = Meteor.users.findOne({_id: this.request.query.id});
-      //var userName = query.profile ? query.profile.name : query.services.google.name;
-      console.log("user recieved mail");
+      // console.log('userId ', this.request.query);
+      let userId = Object.keys(this.request.query)[0];
+      AddNotification(userId);
       return {
         statusCode: 200,
         headers: {

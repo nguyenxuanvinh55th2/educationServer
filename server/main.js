@@ -25,48 +25,48 @@ import './configureMailService';
 // import './secrets';
 const login = require("facebook-chat-api");
 
-//process.env.MAIL_URL = 'smtp://sanghuynhnt95@gmail.com:1235813211995@smtp.gmail.com:587/';
-//
-// var VertificateCode = '';
-//
-// // Meteor.methods({
-// //       sendEmail: function (mailAddress, mailService) {
-//         VertificateCode = (Math.floor(Math.random()*99999) + 10000).toString();
-//
-//         //khởi tạo đối tượng mã hóa
-//         var Cryptr = require('cryptr'),
-//         cryptr = new Cryptr('ntuquiz123');
-//
-//         //mã hóa mật khẩu
-//         var content;
-//         // if(mailService)
-//         //   content = '{"code": ' + '"' + '0123456' + '", ' + '"email": ' + '"' + 'huynhngocsangth2ntu@gmail.com' + '", ' + '"mailService": ' + mailService + '}';
-//         // else
-//           content = '{"code": ' + '"' + '0123456' + '", ' + '"email": ' + '"' + 'huynhngocsangth2ntu@gmail.com' + '"}';
-//
-//
-//
-//         //nội dung sau khi mã hóa
-//         var encryptedString = cryptr.encrypt(content);
-//
-//         //chuyen huong den template
-//         SSR.compileTemplate('emailText', Assets.getText("vertificateMail.html"));
-//
-//         //chuyen html
-//         var html = SSR.render("emailText", {text:encryptedString, userId: 'abcedfghi'});
-//
-//         //nội dung mail
-//         var email = {
-//           from: 'sanghuynhnt95@gmail.com',
-//           to: 'huynhngocsangth2ntu@gmail.com',
-//           subject: "test email",
-//           html: html
-//         };
-//
-//         //gửi mail
-//         Email.send(email);
-//   //     }
-//   // });
+process.env.MAIL_URL = 'smtp://sanghuynhnt95@gmail.com:1235813211995@smtp.gmail.com:587/';
+
+var VertificateCode = '';
+
+// Meteor.methods({
+//       sendEmail: function (mailAddress, mailService) {
+        VertificateCode = (Math.floor(Math.random()*99999) + 10000).toString();
+
+        //khởi tạo đối tượng mã hóa
+        var Cryptr = require('cryptr'),
+        cryptr = new Cryptr('ntuquiz123');
+
+        //mã hóa mật khẩu
+        var content;
+        // if(mailService)
+        //   content = '{"code": ' + '"' + '0123456' + '", ' + '"email": ' + '"' + 'huynhngocsangth2ntu@gmail.com' + '", ' + '"mailService": ' + mailService + '}';
+        // else
+          content = '{"code": ' + '"' + '0123456' + '", ' + '"email": ' + '"' + 'huynhngocsangth2ntu@gmail.com' + '"}';
+
+
+
+        //nội dung sau khi mã hóa
+        var encryptedString = cryptr.encrypt(content);
+
+        //chuyen huong den template
+        SSR.compileTemplate('emailText', Assets.getText("vertificateMail.html"));
+
+        //chuyen html
+        var html = SSR.render("emailText", {text:encryptedString, userId: 'Rdf7Hyq9RKEWnvQ7G'});
+
+        //nội dung mail
+        var email = {
+          from: 'sanghuynhnt95@gmail.com',
+          to: 'sanghuynhnt95@yahoo.com',
+          subject: "test email",
+          html: html
+        };
+
+        //gửi mail
+        Email.send(email);
+  //     }
+  // });
 
 // fs.readFile('../../../../../public/dethi.doc', 'utf8', function(err, data) {
 //   if (err) throw err;

@@ -12,6 +12,7 @@ import { Examinations } from '../../collections/examination'
 import { Questions } from '../../collections/question'
 import { ClassSubjects } from '../../collections/classSubject'
 import { ChatContents } from '../../collections/chatContent'
+import { Notifications } from '../../collections/notification'
 
 import Fiber from 'fibers';
 
@@ -19,8 +20,62 @@ Future = Npm.require('fibers/future');
 import CryptoJS from "crypto-js";
 
 process.env.MAIL_URL = 'smtp://sanghuynhnt95gmail.com:1235813211995@smtp.gmail.com:587/';
-// process.env.MAIL_URL = 'smtp://tuielearning@gmail.com:elearning@smtp.gmail.com:587/';
-// import '../../server/secrets.js';
+
+const sendMailResult = (mailAddress, result, title) => {
+   //VertificateCode = (Math.floor(Math.random()*99999) + 10000).toString();
+
+    //khởi tạo đối tượng mã hóa
+    var Cryptr = require('cryptr'),
+    cryptr = new Cryptr('ntuquiz123');
+
+    //mã hóa mật khẩu
+    var content = result;
+    // if(mailService)
+    //   content = '{"code": ' + '"' + '0123456' + '", ' + '"email": ' + '"' + 'huynhngocsangth2ntu@gmail.com' + '", ' + '"mailService": ' + mailService + '}';
+    // else
+      //content = result;
+
+
+
+    //nội dung sau khi mã hóa
+    //var encryptedString = cryptr.encrypt(content);
+
+    //chuyen huong den template
+    SSR.compileTemplate('emailText', content);
+
+    //chuyen html
+    var html = SSR.render("emailText");
+
+    //nội dung mail
+    var email = {
+      to: mailAddress,
+      from: 'sanghuynhnt95@gmail.com',
+      subject: title,
+      html: html
+    };
+
+    // var postURL = process.env.MAILGUN_API_URL + '/' + process.env.MAILGUN_DOMAIN + '/messages';
+    // var options =   {
+    //     auth: "api:" + process.env.MAILGUN_API_KEY,
+    //     params: {
+    //         "from":"Movie at My Place <info@movieatmyplace.com>",
+    //         "to":[mailAddress],
+    //         "subject": 'movieatmyplace.com quick feedback',
+    //         "html": html,
+    //     }
+    // }
+
+    // var onError = function(error, result) {
+    //     if(error) {console.log("Error: " + error)}
+    // }
+    //
+    // // Send the request
+    // Meteor.http.post(postURL, options, onError);
+
+    //gửi mail
+    Email.send(email);
+
+}
 
 const sendEmail = (mailAddress, VertificateCode, userId) => {
 
@@ -358,6 +413,7 @@ const resolveFunctions = {
       }
       return classItem;
     },
+    
     questionSetBankUser: (root, { userId }) => {
       return QuestionSets.find({'createdById' : userId}, {createAt: -1}).fetch();
     },
@@ -1214,7 +1270,7 @@ const resolveFunctions = {
         if(!examination) {
           return 'notFound';
         }
-        if(examination.status === 0 || examination.status === 100) {
+        if((examination.status === 0 || examination.status === 100) && examination.isTest) {
           return 'canNotJoin';
         }
         player = Players.findOne({userId: user._id});
@@ -1288,16 +1344,37 @@ const resolveFunctions = {
       }
       return;
     },
-    finishExamination: (_, {token, _id}) => {
+    finishExamination: (_, {token, _id, result}) => {
       let user = Meteor.users.findOne({accessToken: token});
-      if(user) {
-        let examination = Examinations.findOne({_id});
-        if(examination && examination.createdById === user._id) {
+      let examination = Examinations.findOne({_id});
+      let title = 'Kết quả ' + examination.name;
+      let playerId = UserExams.find({examId: _id}).map(item => item.playerId);
+      let userId = Players.find({_id: {$in: playerId}}).map(item => item.userId);
+      let userList = Meteor.users.find({_id: {$in: userId}}).fetch();
+      let parentList = [];
+      __.forEach(userList, item => {
+        let parent = Meteor.users.find({childrents: item._id});
+        parentList.push(parent);
+      })
+      let allUser = __.concat(userList, parentList);
+      allUser.push(user);
+      let email = allUser.map(user => {
+        if(user) {
+          return user.profileObj ? user.profileObj.email : user.email ? user.email : user.emails ? user.emails[0].address : '';
+        } else {
+            return '';
+        }
+      });
+
+        sendMailResult(email, result, title)
+      // if(user) {
+        // let examination = Examinations.findOne({_id});
+        // if(examination && examination.createdById === user._id) {
           Examinations.update({_id}, {$set: {
             status: 100
           }});
-        }
-      }
+        //}
+      // }
       return;
     },
     answerQuestion: (_, {token, examId, questionSetId, questionId, answer}) => {
@@ -1669,6 +1746,13 @@ const resolveFunctions = {
         { multi: true }
       )
       return
+    },
+    resetExamination: (_, {_id}) => {
+      Examinations.update({_id}, {$set: {
+            status: 99,
+            timeStart: moment().valueOf()
+      }});
+      return;
     }
   },
   Activity: {

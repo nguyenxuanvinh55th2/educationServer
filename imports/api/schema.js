@@ -60,6 +60,7 @@ const schema = [`
   type Examination {
     _id : String,
     code : String,
+    isTest: Boolean,
     timeStart: Float,
     createdBy: User,
     name : String,
@@ -319,13 +320,12 @@ const schema = [`
     readyExamination(token: String!, _id: String!): String
     startExamination(token: String!, _id: String!): String
     answerQuestion(token: String!, examId: String!, questionSetId: String!, questionId: String!, answer: String!): String
-    finishExamination(token: String!, _id: String!): String
+    finishExamination(token: String!, _id: String!, result: String): String
     insertForum(token: String!, info: String): String
     screenShot(token: String!, link: String!) : String
     insertTopic(token: String!, info: String): String
     startExamination(token: String!, _id: String!): String
     answerQuestion(token: String!, examId: String!, questionSetId: String!, questionId: String!, answer: String!): String
-    finishExamination(token: String!, _id: String!): String
     insertCommentForum(token: String!, info: String): String
     updateCurrentQuestion(token: String!, info: String): String
     register(info: String!): String
@@ -348,6 +348,7 @@ const schema = [`
     updateProfileUser(token: String!, info: String) : String
     checkPasswordUser(token: String!, userId: String, password: String) : Boolean
     unFriend(userId: String!, friendId: String!): String
+    resetExamination(_id: String!): String
   }
 
   type Subscription {
