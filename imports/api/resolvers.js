@@ -586,6 +586,16 @@ const resolveFunctions = {
     getAllAssByUserClassSubject: (_, { userId, classSubjectId }) => {
       // let activities = Activities.find({classSubjectId: classSubjectId, isAssignment: true}).fetch();
       return [];
+    },
+    getCountActivityByUserClassSubject: (_, {userId, classSubjectId}) => {
+      let total = 0;
+      Activities.find({classSubjectId: classSubjectId, isForum: true}).forEach((ac) => {
+        let topic = Topics.findOne({_id: ac.topicId, ownerId: userId});
+        if(topic && topic._id){
+          total += 1;
+        }
+      });
+      return total;
     }
   },
 

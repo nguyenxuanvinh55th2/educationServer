@@ -107,6 +107,7 @@ const schema = [`
   	ownerId:String
   	owner: User
   	content: String
+    point: Float
   	files:[File]
   	createdAt: Float
   }
@@ -195,6 +196,7 @@ const schema = [`
     links: [String]
     selection: [String]
     createdAt: Float
+    deadline: Float
   }
 
   type Question {
@@ -295,6 +297,7 @@ const schema = [`
     getPermissonInAccounting (userIds: [String], accountingObjectId: String): [Permission]
     friendList (userId: String!): [User]
     getAllAssByUserClassSubject(userId: String, classSubjectId: String): [Topic]
+    getCountActivityByUserClassSubject(userId: String, classSubjectId: String): Float
   }
 
   type Mutation {
