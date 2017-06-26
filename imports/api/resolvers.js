@@ -1683,6 +1683,14 @@ const resolveFunctions = {
         { multi: true }
       )
       return
+    },
+    updateMemberReply: (_, { userId, _id, info}) => {
+      var user = Meteor.users.find({_id: userId}).fetch()[0];
+      if(user) {
+        info = JSON.parse(info);
+        return MemberReplys.update({_id: _id}, {$set: info})
+      }
+      return ;
     }
   },
   Activity: {
