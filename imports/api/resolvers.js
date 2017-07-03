@@ -310,7 +310,11 @@ const resolveFunctions = {
           profileId: {$in: profileIds},
         }).map(item => item.accountingObjectId);
         let classSubjectIds = AccountingObjects.find({_id: {$in: accIds}, isClassSubject: true}).map(item => item.objectId);
-        return ClassSubjects.find({_id: {$in: classSubjectIds}}).fetch();
+        return ClassSubjects.find({_id: {$in: classSubjectIds}}).map((item) => {
+          if(item.isActive){
+            return item;
+          }
+        })
       }
       return [];
     },
@@ -323,7 +327,11 @@ const resolveFunctions = {
           profileId: {$in: profileIds},
         }).map(item => item.accountingObjectId);
         let classSubjectIds = AccountingObjects.find({_id: {$in: accIds}, isClassSubject: true}).map(item => item.objectId);
-        return ClassSubjects.find({_id: {$in: classSubjectIds}}).fetch();
+        return ClassSubjects.find({_id: {$in: classSubjectIds}}).map((item) => {
+          if(item.isActive){
+            return item;
+          }
+        })
       }
       return [];
     },
