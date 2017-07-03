@@ -1697,6 +1697,23 @@ const resolveFunctions = {
         info = JSON.parse(info)
       }
       return ClassSubjects.update({_id: classSubjectId}, {$set: info});
+    },
+    moveTeacherInClassSubject: (_, { classSubjectId , info}) => {
+      if(typeof info == 'string'){
+        info = JSON.parse(info);
+      }
+      let accounting = AccountingObjects.findOne({objectId: classSubjectId});
+      if(accounting && accounting._id){
+        let permission = Permissions.find({accountingObjectId: accounting._id}).fetch();
+        if(permission && permission.length){
+          __.forEach(permission,(per) => {
+            let profile = Profiles.findOne({_id: per.profileId});
+            if(profile && profile.name && profile.name == 'teacher'){
+              Permissions.update({_id: per._id}, {$set: info});
+            }
+          })
+        }
+      }
     }
   },
   Activity: {
@@ -1851,7 +1868,7 @@ const resolveFunctions = {
             let profile = Profiles.findOne({_id: per.profileId});
             if(profile && profile.name && profile.name == 'teacher'){
               flat = true;
-              future.return(Meteor.users.findOne({_id: '0'}));
+              future.return(Meteor.users.findOne({_id: per.userId}));
             }
           })
           if(!flat){
