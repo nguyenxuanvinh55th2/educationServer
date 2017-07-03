@@ -479,7 +479,7 @@ const resolveFunctions = {
       return Courses.find({}).fetch();
     },
     coursesActive: (root) => {
-      return Courses.find({_id:{$in: ClassSubjects.find({}).map((item) => item.courseId)}}).fetch();
+      return Courses.find({_id:{$in: ClassSubjects.find({isActive: true}).map((item) => item.courseId)}}).fetch();
     },
     getSubjectByUserId: (root,{userId}) => {
       return Subjects.find({createrId:userId}).fetch();
@@ -1691,6 +1691,12 @@ const resolveFunctions = {
         return MemberReplys.update({_id: _id}, {$set: info})
       }
       return ;
+    },
+    updateClassSubject: (_, { classSubjectId, info}) => {
+      if(typeof info == 'string'){
+        info = JSON.parse(info)
+      }
+      return ClassSubjects.update({_id: classSubjectId}, {$set: info});
     }
   },
   Activity: {
@@ -1877,7 +1883,7 @@ const resolveFunctions = {
       return Classes.find({_id: ClassSubjects.find({courseId: _id}).map((item) => item._id)}).fetch();
     },
     classSubjects: ({_id}) => {
-      return ClassSubjects.find({courseId: _id}).fetch();
+      return ClassSubjects.find({courseId: _id, isActive: true}).fetch();
     }
   },
   QuestionSet: {

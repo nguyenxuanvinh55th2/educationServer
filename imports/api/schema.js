@@ -353,6 +353,7 @@ const schema = [`
     checkPasswordUser(token: String!, userId: String, password: String) : Boolean
     unFriend(userId: String!, friendId: String!): String
     updateMemberReply(userId: String, _id: String, info: String): String
+    updateClassSubject(classSubjectId: String, info: String): String
   }
 
   type Subscription {
