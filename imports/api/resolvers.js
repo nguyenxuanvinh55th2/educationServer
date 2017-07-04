@@ -604,6 +604,15 @@ const resolveFunctions = {
         }
       });
       return total;
+    },
+    notActive_getAllCourseByUser: (_, {userId}) => {
+      return Courses.find({createdById: userId}).fetch()
+    },
+    notActive_getAllClassByUser: (_, {userId}) => {
+      return Classes.find({createrId: userId}).fetch();
+    },
+    notActive_getAllSubjectByUser: (_, {userId}) => {
+      return Subjects.find({ownerId: userId}).fetch();
     }
   },
 
@@ -1173,7 +1182,8 @@ const resolveFunctions = {
                                 Activities.insert({
                                   themeId: themeId,
                                   topicId: '',
-                                  classSubjectId: classSubjectId
+                                  classSubjectId: classSubjectId,
+                                  isTheme: true
                                 });
                               }
                             });

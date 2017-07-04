@@ -298,6 +298,9 @@ const schema = [`
     friendList (userId: String!): [User]
     getAllAssByUserClassSubject(userId: String, classSubjectId: String): [Topic]
     getCountActivityByUserClassSubject(userId: String, classSubjectId: String): Float
+    notActive_getAllCourseByUser(userId: String): [Course]
+    notActive_getAllClassByUser(userId: String): [Class]
+    notActive_getAllSubjectByUser(userId: String): [Subject]
   }
 
   type Mutation {
