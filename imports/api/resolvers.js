@@ -1583,6 +1583,14 @@ const resolveFunctions = {
           createdAt: moment().valueOf(),
           createdById: userId
         }
+        Meteor.users.update(
+          { _id: userId },
+          { $push: { friendList: _id } }
+        )
+        Meteor.users.update(
+          { _id },
+          { $push: { friendList: userId } }
+        )
         Notifications.insert(note);
       }
       return;
@@ -1831,7 +1839,8 @@ const resolveFunctions = {
       return Meteor.users.findOne({_id: root.ownerId});
     },
     classSubjects(root) {
-      return getPublicCourseOfSubject(root._id)
+      return ClassSubjects.find({subjectId: root._id}).fetch();
+      // return getPublicCourseOfSubject(root._id)
     }
   },
   UserClass: {
@@ -1868,6 +1877,9 @@ const resolveFunctions = {
     },
     subject: ({subjectId}) => {
       return Subjects.findOne({_id: subjectId});
+    },
+    course: ({courseId}) => {
+      return Courses.findOne({_id: courseId})
     },
     // activity(root) {
     //   return getActivityOfCourse(root._id);

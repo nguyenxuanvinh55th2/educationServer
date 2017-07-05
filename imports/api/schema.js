@@ -55,6 +55,7 @@ const schema = [`
   	theme: [Theme]
     roles: [String]
     accounting: AccountingObject
+    course: Course
   }
 
   type Examination {
