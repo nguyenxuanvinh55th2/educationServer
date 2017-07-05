@@ -140,6 +140,7 @@ const schema = [`
   	name: String,
   	image: String,
   	email: String,
+    code: String,
   	social: String,
   	online: Boolean,
   	lastLogin: String,
@@ -359,6 +360,8 @@ const schema = [`
     updateMemberReply(userId: String, _id: String, info: String): String
     updateClassSubject(classSubjectId: String, info: String): String
     moveTeacherInClassSubject(classSubjectId: String, info: String): String
+    updateEditThem(token: String ,info: String): String
+    updateEditAss(token: String ,info: String): String
   }
 
   type Subscription {

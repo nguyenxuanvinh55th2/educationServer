@@ -290,6 +290,7 @@ const resolveFunctions = {
           }
           return JSON.stringify({
             _id: existsUser._id,
+            code: existsUser.code,
             image : existsUser.image ? existsUser.image : '',
             name: existsUser.profileObj ? existsUser.profileObj.name : existsUser.name ? existsUser.name : existsUser.username,
             email: existsUser.profileObj ? existsUser.profileObj.email : existsUser.email ? existsUser.email : existsUser.emails[0] ? existsUser.emails[0].address : '',
@@ -1546,6 +1547,7 @@ const resolveFunctions = {
           }
           return JSON.stringify({
             _id: existsUser._id,
+            code: existsUser.code,
             image : existsUser.image ? existsUser.image : '',
             name: existsUser.profileObj ? existsUser.profileObj.name : existsUser.name ? existsUser.name : existsUser.username,
             email: existsUser.profileObj ? existsUser.profileObj.email : existsUser.email ? existsUser.email : existsUser.emails[0] ? existsUser.emails[0].address : '',
@@ -1740,6 +1742,36 @@ const resolveFunctions = {
           })
         }
       }
+    },
+    updateEditThem: (_,{token ,info}) => {
+      let user = Meteor.users.findOne({accessToken: token});
+      if(user) {
+        info = JSON.parse(info);
+        Themes.update({_id: info.theme._id}, {$set: {name: info.theme.name}});
+        if(info.topic._id){
+          return Topics.update({_id: info.topic._id}, {$set: {content: info.topic.content}});
+        }
+        else {
+          let topic = {
+            createdAt: moment().valueOf(),
+            createdById: user._id,
+            ownerId: user._id,
+            isTheme: true,
+            content: info.topic.content
+          }
+          return Topics.insert(topic, (error,result) => {
+            if(error){
+              throw error;
+            }
+            else {
+              Activities.update({themeId: info.theme._id},{$set: {topicId: result}})
+            }
+          })
+        }
+      }
+    },
+    updateEditAss: (_, {token,info}) => {
+
     }
   },
   Activity: {
