@@ -1285,12 +1285,17 @@ const resolveFunctions = {
         } else {
             playerId = player._id;
         }
-        UserExams.insert({
-          examId: examination._id,
-          playerId,
-          result: [],
-          correctCount: 0
-        });
+        let userExam = UserExams.findOne({examId: examination._id, playerId});
+        if(userExam) {
+          return examination._id;
+        } else {
+            UserExams.insert({
+              examId: examination._id,
+              playerId,
+              result: [],
+              correctCount: 0
+            });
+        }
         Meteor.users.update({_id: user._id}, {$set: {
           checkOutImage: [{
             link,
@@ -1335,7 +1340,7 @@ const resolveFunctions = {
       let user = Meteor.users.findOne({accessToken: token});
       if(user) {
         let examination = Examinations.findOne({_id});
-        if(examination && examination.createdById === user._id) {
+        if(examination) {
           Examinations.update({_id}, {$set: {
             status: 99,
             timeStart: moment().valueOf()
@@ -1365,8 +1370,9 @@ const resolveFunctions = {
             return '';
         }
       });
-
+      if(examination.isTest && !examination.isClassStyle && result) {
         sendMailResult(email, result, title)
+      }
       // if(user) {
         // let examination = Examinations.findOne({_id});
         // if(examination && examination.createdById === user._id) {
