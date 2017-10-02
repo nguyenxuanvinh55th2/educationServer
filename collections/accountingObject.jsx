@@ -1,8 +1,7 @@
 import { Mongo } from 'meteor/mongo';
 
-//bao gồm quảng cáo và quản lý hình ảnh
-Notifications = new Mongo.Collection('notifications');
-Notifications.allow({
+AccountingObjects = new Mongo.Collection('accountingObjects');
+AccountingObjects.allow({
   insert: function () {
       return true;
   },

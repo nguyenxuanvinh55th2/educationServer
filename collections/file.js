@@ -1,15 +1,12 @@
-import { Meteor } from 'meteor/meteor';
-import { FilesCollection } from 'meteor/ostrio:files';
+import {Meteor} from 'meteor/meteor';
+import {FilesCollection} from 'meteor/ostrio:files';
 import Grid from 'gridfs-stream';
-import { MongoInternals } from 'meteor/mongo';
+import {MongoInternals} from 'meteor/mongo';
 import fs from 'fs';
 
 let gfs;
 if (Meteor.isServer) {
-  gfs = Grid(
-    MongoInternals.defaultRemoteCollectionDriver().mongo.db,
-    MongoInternals.NpmModule
-  );
+  gfs = Grid(MongoInternals.defaultRemoteCollectionDriver().mongo.db, MongoInternals.NpmModule);
 }
 
 Files = new FilesCollection({
@@ -17,15 +14,21 @@ Files = new FilesCollection({
   allowClientCode: false,
   debug: Meteor.isServer && process.env.NODE_ENV === 'development',
   onBeforeUpload(file) {
-    if(!this.userId) return false;
-    if (file.size <= 10485760) return true;
+    if (!this.userId)
+      return false;
+    if (file.size <= 2097152 && /png|jpg|jpeg/i.test(file.extension))
+      return true;
     return 'Please upload image, with size equal or less than 2MB';
   },
   onAfterUpload(image) {
     // Move file to GridFS
     Object.keys(image.versions).forEach(versionName => {
-      const metadata = { versionName, imageId: image._id, storedAt: new Date() }; // Optional
-      const writeStream = gfs.createWriteStream({ filename: image.name, metadata });
+      const metadata = {
+        versionName,
+        imageId: image._id,
+        storedAt: new Date()
+      }; // Optional
+      const writeStream = gfs.createWriteStream({filename: image.name, metadata});
 
       fs.createReadStream(image.versions[versionName].path).pipe(writeStream);
 
@@ -34,7 +37,11 @@ Files = new FilesCollection({
 
         // If we store the ObjectID itself, Meteor (EJSON?) seems to convert it to a
         // LocalCollection.ObjectID, which GFS doesn't understand.
-        this.collection.update(image._id, { $set: { [property]: file._id.toString() } });
+        this.collection.update(image._id, {
+          $set: {
+            [property]: file._id.toString()
+          }
+        });
         this.unlink(this.collection.findOne(image._id), versionName); // Unlink files from FS
       }));
     });
@@ -43,8 +50,10 @@ Files = new FilesCollection({
     // Serve file from GridFS
     const _id = (image.versions[versionName].meta || {}).gridFsFileId;
     if (_id) {
-      const readStream = gfs.createReadStream({ _id });
-      readStream.on('error', err => { throw err; });
+      const readStream = gfs.createReadStream({_id});
+      readStream.on('error', err => {
+        throw err;
+      });
       readStream.pipe(http.response);
     }
     return Boolean(_id); // Serve file from either GridFS or FS if it wasn't uploaded yet
@@ -54,8 +63,16 @@ Files = new FilesCollection({
     files.forEach(image => {
       Object.keys(image.versions).forEach(versionName => {
         const _id = (image.versions[versionName].meta || {}).gridFsFileId;
-        if (_id) gfs.remove({ _id }, err => { if (err) throw err; });
-      });
+        if (_id)
+          gfs.remove({
+            _id
+          }, err => {
+            if (err)
+              throw err;
+            }
+          );
+        }
+      );
     });
   }
 });
@@ -63,15 +80,15 @@ Files = new FilesCollection({
 if (Meteor.isServer) {
   // Files.denyClient();
   Files.allowClient();
-  Meteor.publish('files.images.all', function () {
+  Meteor.publish('files.images.all', function() {
     return Files.find().cursor;
   });
-  Meteor.publish('files.images.one', function (_id) {
+  Meteor.publish('files.images.one', function(_id) {
     return Files.find(_id).cursor;
   });
   Meteor.methods({
-     removeFile: function(_id){
-         Files.remove(_id);
-     }
+    removeFile: function(_id) {
+      Files.remove(_id);
+    }
   });
 }
