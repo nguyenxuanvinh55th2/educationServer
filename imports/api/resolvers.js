@@ -1609,7 +1609,7 @@ const resolveFunctions = {
     },
     insertUserFriend(root, {userId, _id}) {
       let user = Meteor.users.findOne({_id: userId});
-      let sendimage = 'https://i1249.photobucket.com/albums/hh508/nguyenxuanvinhict/userImage_zpsqz3krq9r.jpg';
+      let sendimage = 'http://sv1.upsieutoc.com/2017/10/12/userImage.png';
       if(user.profileObj && user.profileObj.imageUrl){
         sendimage = user.profileObj.imageUrl
       }
@@ -2012,7 +2012,7 @@ const resolveFunctions = {
       else if (root.profile && root.profile.imageId) {
         return Files.findOne({_id: imageId}).link();
       }
-      return 'https://i1249.photobucket.com/albums/hh508/nguyenxuanvinhict/userImage_zpsqz3krq9r.jpg';
+      return 'http://sv1.upsieutoc.com/2017/10/12/userImage.png';
     },
     email: (root) => {
       return root.profileObj ? root.profileObj.email : root.email ? root.email : root.emails ? root.emails[0].address : '';
